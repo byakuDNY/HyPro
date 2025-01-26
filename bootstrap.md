@@ -181,7 +181,7 @@ export function ModeToggle() {
 </details>
 
 <details>
-<summary><code>app/layout.tsx</code></summary>
+<summary><code>./src/app/layout.tsx</code></summary>
 
 ```tsx
 import type { Metadata } from "next";
