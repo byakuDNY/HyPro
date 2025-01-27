@@ -229,7 +229,7 @@ pnpm add -D drizzle-kit tsx @types/pg
 ## Setup Environment Variables
 
 <details>
-<summary><code>.env.local</code></summary>
+<summary><code>.env</code></summary>
 
 ```env
 BASE_URL=

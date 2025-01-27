@@ -44,7 +44,7 @@ const Header = () => {
           </Button>
         </div>
       </div>
-      <MobileMenu isOpen={isMobileMenuOpen} />
+      <MobileMenu isOpen={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} />
     </header>
   );
 };

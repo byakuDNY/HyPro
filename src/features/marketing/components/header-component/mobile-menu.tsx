@@ -7,9 +7,10 @@ import { NAV_ITEMS } from "@/lib/constants";
 
 interface MobileMenuProps {
   isOpen: boolean;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const MobileMenu = ({ isOpen }: MobileMenuProps) => {
+const MobileMenu = ({ isOpen, setIsOpen }: MobileMenuProps) => {
   const pathname = usePathname();
 
   if (!isOpen) return null;
@@ -21,7 +22,8 @@ const MobileMenu = ({ isOpen }: MobileMenuProps) => {
           <Link
             key={item.name}
             href={item.href}
-            className={`block border-l-4 py-2 pl-3 pr-4 text-base font-medium ${
+            onClick={() => setIsOpen(false)}
+            className={`transition: all 0.2s ease-in-out; block border-l-4 py-2 pl-3 pr-4 text-base font-medium ${
               pathname === item.href
                 ? "border-primary bg-primary/10 text-primary"
                 : "text-muted-foreground hover:border-secondary-foreground hover:bg-accent hover:text-foreground"
