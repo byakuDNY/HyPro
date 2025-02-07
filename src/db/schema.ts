@@ -1,6 +1,7 @@
 import {
   boolean,
   date,
+  integer,
   numeric,
   pgEnum,
   pgTable,
@@ -34,7 +35,7 @@ export const sessions = pgTable("sessions", {
   ipAddress: text(),
   userAgent: text(),
   userId: text()
-    .references(() => users.id, { onDelete: "cascade" })
+    .references(() => users.id)
     .notNull(),
 });
 
@@ -43,7 +44,7 @@ export const accounts = pgTable("accounts", {
   accountId: text().notNull(),
   providerId: text().notNull(),
   userId: text()
-    .references(() => users.id, { onDelete: "cascade" })
+    .references(() => users.id)
     .notNull(),
   accessToken: text(),
   refreshToken: text(),
@@ -63,6 +64,21 @@ export const verifications = pgTable("verifications", {
   expiresAt: timestamp().notNull(),
   createdAt: timestamp(),
   updatedAt: timestamp(),
+});
+
+export const passkeys = pgTable("passkeys", {
+  id: text().primaryKey(),
+  name: text(),
+  publicKey: text().notNull(),
+  userId: text()
+    .notNull()
+    .references(() => users.id),
+  credentialID: text().notNull(),
+  counter: integer().notNull(),
+  deviceType: text().notNull(),
+  backedUp: boolean().notNull(),
+  transports: text(),
+  createdAt: timestamp(),
 });
 
 export const PROJECT_STATUS_ENUM = pgEnum("project_status", [

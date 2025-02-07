@@ -1,14 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import router from "next/router";
+import { useEffect, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Github, Loader2 } from "lucide-react";
+import { EyeIcon, EyeOffIcon, Github, KeyRound } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import LoadingButton from "@/components/loading-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -21,68 +22,29 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { authFormSchema } from "@/features/auth/zod-schema";
 import { toast } from "@/hooks/use-toast";
-import { authClient } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth/auth-client";
 
-type FormType = "sign-in" | "sign-up";
-
-const authFormSchema = (formType: FormType) => {
-  const baseSchema = z.object({
-    email: z.string().email({ message: "Please enter a valid email address" }),
-    password: z
-      .string()
-      .min(8, { message: "Password must be at least 8 characters." }),
-  });
-
-  return formType === "sign-up"
-    ? baseSchema
-        .extend({
-          name: z
-            .string()
-            .min(2, { message: "Name must be at least 2 characters long" })
-            .max(50, { message: "Name must be less than 50 characters long" }),
-          confirmPassword: z
-            .string()
-            .min(8, { message: "Password must be at least 8 characters." }),
-          terms: z.boolean().refine((data) => data === true, {
-            message: "You must agree to the terms and conditions.",
-          }),
-        })
-        .refine((data) => data.password === data.confirmPassword, {
-          message: "Passwords do not match",
-          path: ["confirmPassword"],
-        })
-    : baseSchema;
-};
+export type FormType = "sign-in" | "sign-up";
 
 const AuthForm = ({ type }: { type: FormType }) => {
-  const authContext = (type: FormType) => ({
-    onRequest: () => {
-      toast({
-        title: `Signing ${type === "sign-up" ? "up" : "in"}...`,
-        description: "Please wait",
-      });
-    },
-    onSuccess: () => {
-      form.reset();
-      toast({
-        title: "Success",
-        description: `You have successfully signed ${type === "sign-up" ? "up" : "in"}`,
-      });
-    },
-    onError: (ctx: any) => {
-      toast({
-        title: "Error",
-        description: ctx.error.message,
-        variant: "destructive",
-      });
-    },
-  });
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (
+      !PublicKeyCredential.isConditionalMediationAvailable ||
+      !PublicKeyCredential.isConditionalMediationAvailable()
+    ) {
+      return;
+    }
+
+    void authClient.signIn.passkey({ autoFill: true });
+  }, []);
 
   const formSchema = authFormSchema(type);
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<z.infer<ReturnType<typeof authFormSchema>>>({
     resolver: zodResolver(formSchema),
     defaultValues:
       type === "sign-up"
@@ -98,70 +60,101 @@ const AuthForm = ({ type }: { type: FormType }) => {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    setErrorMessage("");
 
-    try {
-      const { error } =
-        type === "sign-up"
-          ? await authClient.signUp.email(
-              {
-                name: values.name ?? "",
-                email: values.email,
-                password: values.password,
-                callbackURL: "/dashboard",
-              },
-              authContext(type),
-            )
-          : await authClient.signIn.email(
-              {
-                email: values.email,
-                password: values.password,
-                callbackURL: "/dashboard",
-              },
-              authContext(type),
-            );
-      if (error) throw error;
-    } catch (error: any) {
-      toast({
-        title: "Authentication failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    type === "sign-up"
+      ? await authClient.signUp.email(
+          {
+            name: "name" in values ? (values.name ?? "") : "",
+            email: values.email,
+            password: values.password,
+          },
+          {
+            onSuccess: () => {
+              form.reset();
+              toast({
+                title: "Account created",
+                description:
+                  "Check your email for a confirmation link. If you don't receive an email, please check your spam folder.",
+              });
+            },
+            onError: (ctx: any) => {
+              toast({
+                title: "Error",
+                description: ctx.error.message,
+                variant: "destructive",
+              });
+            },
+          },
+        )
+      : await authClient.signIn.email(
+          {
+            email: values.email,
+            password: values.password,
+            callbackURL: "/dashboard",
+          },
+          {
+            onError: (ctx: any) => {
+              toast({
+                title: "Error",
+                description: ctx.error.message,
+                variant: "destructive",
+              });
+            },
+          },
+        );
+
+    setIsLoading(false);
   }
 
   const signInWithGithub = async () => {
-    try {
-      const { error } = await authClient.signIn.social({
+    setIsLoading(true);
+    await authClient.signIn.social(
+      {
         provider: "github",
         callbackURL: "/dashboard",
-      });
-      if (error) throw error;
-    } catch (error: any) {
-      toast({
-        title: "GitHub Sign-In Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
+      },
+      {
+        onError: (ctx: any) => {
+          toast({
+            title: "GitHub Sign-In Failed",
+            description: ctx.error.message,
+            variant: "destructive",
+          });
+        },
+      },
+    );
+    setIsLoading(false);
   };
 
-  const signInWithGoogle = async () => {
-    try {
-      const { error } = await authClient.signIn.social({
-        provider: "google",
-        callbackURL: "/dashboard",
-      });
-      if (error) throw error;
-    } catch (error: any) {
-      toast({
-        title: "Google Sign-In Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
+  const signInWithPasskey = async () => {
+    setIsLoading(true);
+    // await authClient.signIn.passkey({
+    //   onSuccess: () => {
+    //     router.push("/dashboard");
+    //   },
+    //   onError: (ctx: any) => {
+    //     toast({
+    //       title: "Passkey Sign-In Failed",
+    //       description: ctx.error.message,
+    //       variant: "destructive",
+    //     });
+    //   },
+    // });
+    await authClient.signIn.passkey({
+      fetchOptions: {
+        onSuccess() {
+          router.push("/dashboard");
+        },
+        onError(ctx) {
+          toast({
+            title: "Passkey Sign-In Failed",
+            description: ctx.error.message,
+            variant: "destructive",
+          });
+        },
+      },
+    });
+    setIsLoading(false);
   };
 
   return (
@@ -173,7 +166,13 @@ const AuthForm = ({ type }: { type: FormType }) => {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form
+            onChange={() => {
+              console.log(form.formState.errors);
+            }}
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4"
+          >
             {type === "sign-up" && (
               <FormField
                 control={form.control}
@@ -182,7 +181,11 @@ const AuthForm = ({ type }: { type: FormType }) => {
                   <FormItem>
                     <FormLabel>Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter your name" {...field} />
+                      <Input
+                        placeholder="Enter your name"
+                        {...field}
+                        type="text"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -196,7 +199,11 @@ const AuthForm = ({ type }: { type: FormType }) => {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter your email" {...field} />
+                    <Input
+                      placeholder="Enter your email"
+                      {...field}
+                      type="email"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -209,16 +216,55 @@ const AuthForm = ({ type }: { type: FormType }) => {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Enter your password"
-                      {...field}
-                      type="password"
-                    />
+                    <div className="relative">
+                      <Input
+                        {...field}
+                        type={showPassword ? "text" : "password"}
+                        className="pr-10"
+                        placeholder="Enter your password"
+                        autoComplete={"webauthn"}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                      >
+                        {showPassword ? (
+                          <EyeIcon className="h-4 w-4" aria-hidden="true" />
+                        ) : (
+                          <EyeOffIcon className="h-4 w-4" aria-hidden="true" />
+                        )}
+                      </Button>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
+            {type == "sign-in" && (
+              <div className="flex items-center">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="remember"
+                    onClick={() => {
+                      // setRememberMe(!rememberMe);
+                    }}
+                  />
+
+                  <FormLabel htmlFor="remember">Remember me</FormLabel>
+                </div>
+                <Link
+                  href="/forgot-password"
+                  className="ml-auto inline-block text-sm underline"
+                >
+                  Forgot your password?
+                </Link>
+              </div>
+            )}
+
             {type === "sign-up" && (
               <>
                 <FormField
@@ -228,11 +274,30 @@ const AuthForm = ({ type }: { type: FormType }) => {
                     <FormItem>
                       <FormLabel>Confirm Password</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="Confirm your password"
-                          {...field}
-                          type="password"
-                        />
+                        <div className="relative">
+                          <Input
+                            {...field}
+                            type={showPassword ? "text" : "password"}
+                            className="pr-10"
+                            placeholder="Confirm your password"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-0 h-full px-3 py-2"
+                            onClick={() => setShowPassword((prev) => !prev)}
+                          >
+                            {showPassword ? (
+                              <EyeIcon className="h-4 w-4" aria-hidden="true" />
+                            ) : (
+                              <EyeOffIcon
+                                className="h-4 w-4"
+                                aria-hidden="true"
+                              />
+                            )}
+                          </Button>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -243,7 +308,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
                   control={form.control}
                   name="terms"
                   render={({ field }) => (
-                    <FormItem className="space-y-4">
+                    <FormItem>
                       <div className="flex items-start space-x-2">
                         <FormControl>
                           <Checkbox
@@ -277,24 +342,10 @@ const AuthForm = ({ type }: { type: FormType }) => {
                 />
               </>
             )}
-            {errorMessage && (
-              <Alert variant="destructive">
-                <AlertDescription>{errorMessage}</AlertDescription>
-              </Alert>
-            )}
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Please wait
-                </>
-              ) : type === "sign-up" ? (
-                "Sign Up"
-              ) : (
-                "Sign In"
-              )}
-            </Button>
+            <LoadingButton isLoading={isLoading} className="w-full">
+              {type === "sign-up" ? "Create Account" : "Sign In"}
+            </LoadingButton>
           </form>
         </Form>
 
@@ -308,25 +359,29 @@ const AuthForm = ({ type }: { type: FormType }) => {
         </div>
 
         <section className="space-y-2">
-          <Button
+          <LoadingButton
+            isLoading={isLoading}
+            onClick={signInWithGithub}
+            className="w-full border-secondary-foreground"
             type="button"
             variant="outline"
-            className="w-full border-secondary-foreground"
-            onClick={signInWithGithub}
           >
             <Github className="mr-2 h-4 w-4" />
             {type === "sign-up" ? "Sign Up with Github" : "Sign In with Github"}
-          </Button>
+          </LoadingButton>
 
-          <Button
+          <LoadingButton
+            isLoading={isLoading}
+            className="w-full border-secondary-foreground"
+            onClick={signInWithPasskey}
             type="button"
             variant="outline"
-            className="w-full border-secondary-foreground"
-            onClick={signInWithGoogle}
           >
-            <Github className="mr-2 h-4 w-4" />
-            {type === "sign-up" ? "Sign Up with Google" : "Sign In with Google"}
-          </Button>
+            <KeyRound className="mr-2 h-4 w-4" />
+            {type === "sign-up"
+              ? "Sign Up with Passkey"
+              : "Sign In with Passkey"}
+          </LoadingButton>
         </section>
 
         <p className="mt-4 text-center text-sm">

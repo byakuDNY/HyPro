@@ -1,61 +1,46 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import { betterFetch } from "@better-fetch/fetch";
+export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
 
-import type { Session } from "@/lib/auth";
+  const authRoutes = [
+    "/sign-in",
+    "/sign-up",
+    "/forgot-password",
+    "/reset-password",
+  ]; // auth routes
+  const protectedRoutes = ["/dashboard"]; // protected routes
 
-import envConfig from "./lib/env-config";
+  const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
+  const isProtectedRoute = protectedRoutes.some((route) =>
+    pathname.startsWith(route),
+  );
 
-const publicRoutes = ["/", "/pricing"];
-const authRoutes = ["/sign-in", "/sign-up", "/forgot-password"];
+  // const cookies = getSessionCookie(request);
+  const hasSession = request.cookies.has("better-auth.session_token");
 
-export default async function authMiddleware(request: NextRequest) {
-  const pathName = request.nextUrl.pathname;
-
-  const isPublicRoute = publicRoutes.includes(pathName);
-  const isAuthRoute = authRoutes.includes(pathName);
-
-  try {
-    const { data: session } = await betterFetch<Session>(
-      "/api/auth/get-session",
-      {
-        baseURL: envConfig.baseUrl,
-        headers: {
-          //get the cookie from the request
-          cookie: request.headers.get("cookie") || "",
-        },
-        timeout: 5000,
-      },
-    );
-
-    if (isPublicRoute) {
-      return NextResponse.next();
-    }
-
-    if (!session) {
-      if (isAuthRoute) {
-        return NextResponse.next();
-      }
-
-      return NextResponse.redirect(new URL("/sign-in", request.url));
-    }
-
+  if (hasSession) {
     if (isAuthRoute) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
 
     return NextResponse.next();
-  } catch (error) {
-    console.error("Error fetching session:", error);
-    if (isPublicRoute || isAuthRoute) {
-      return NextResponse.next();
-    }
+  }
+
+  if (isProtectedRoute) {
     return NextResponse.redirect(new URL("/sign-in", request.url));
   }
+
+  return NextResponse.next();
 }
 
 export const config = {
   matcher: [
+    // Skip Next.js internals and all static files, unless found in search params
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    // Always run for API routes
+    "/(api|trpc)(.*)",
+
     /*
      * Match all request paths except for the ones starting with:
      * - api (API routes)
@@ -63,6 +48,6 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico, sitemap.xml, robots.txt (metadata files)
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|favicon-light.svg|favicon-dark.svg).*)",
+    // "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|favicon-light.svg|favicon-dark.svg).*)",
   ],
 };

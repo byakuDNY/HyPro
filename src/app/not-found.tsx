@@ -21,6 +21,13 @@ const NotFound = () => {
           className="inline-block text-primary transition-transform duration-200 ease-in-out hover:scale-95"
         >
           return to the home page
+        </Link>{" "}
+        or{" "}
+        <Link
+          href={"/dashboard"}
+          className="inline-block text-primary transition-transform duration-200 ease-in-out hover:scale-95"
+        >
+          dashboard
         </Link>
         .
       </p>

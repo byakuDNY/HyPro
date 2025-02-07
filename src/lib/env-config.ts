@@ -8,6 +8,10 @@ const envConfig = {
       clientSecret: process.env.GITHUB_CLIENT_SECRET!,
     },
   },
+  email: {
+    resendApiKey: process.env.RESEND_API_KEY!,
+    customEmail: process.env.CUSTOM_EMAIL!,
+  },
 };
 
 export default envConfig;

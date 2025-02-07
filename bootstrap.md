@@ -250,7 +250,7 @@ BETTER_AUTH_SECRET=
 const envConfig = {
   baseUrl: process.env.BASE_URL!,
   db: { databaseUrl: process.env.DATABASE_URL! },
-  auth: {
+  betterAuth: {
     betterAuth: { secret: process.env.BETTER_AUTH_SECRET! },
     githubOauth: {
       clientId: process.env.GITHUB_CLIENT_ID!,
@@ -312,23 +312,23 @@ export default db;
 ## Install Better Auth
 
 ```sh
-pnpm add better-auth
+pnpm add better-betterAuth
 ```
 
 ## Setup Authentication
 
 <details>
-<summary><code>./lib/auth.ts</code></summary>
+<summary><code>./lib/better-auth.ts</code></summary>
 
 ```ts
-import { betterAuth } from "better-auth";
-import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { betterAuth } from "better-betterAuth";
+import { drizzleAdapter } from "better-betterAuth/adapters/drizzle";
 
 import db from "@/db";
 
 import envConfig from "./env-config";
 
-const auth = betterAuth({
+const betterAuth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
     usePlural: true,
@@ -338,8 +338,8 @@ const auth = betterAuth({
   },
   socialProviders: {
     github: {
-      clientId: envConfig.auth.githubOauth.clientId,
-      clientSecret: envConfig.auth.githubOauth.clientSecret,
+      clientId: envConfig.betterAuth.githubOauth.clientId,
+      clientSecret: envConfig.betterAuth.githubOauth.clientSecret,
     },
   },
   session: {
@@ -360,21 +360,21 @@ const auth = betterAuth({
   },
 });
 
-export type Session = typeof auth.$Infer.Session;
-export default auth;
+export type Session = typeof betterAuth.$Infer.Session;
+export default betterAuth;
 ```
 
 </details>
 
 <details>
-<summary><code>./lib/auth-client.ts</code></summary>
+<summary><code>./lib/betterAuth-client.ts</code></summary>
 
 ```ts
-import { createAuthClient } from "better-auth/react";
+import { createAuthClient } from "better-betterAuth/react";
 
 import envConfig from "./env-config";
 
-export const authClient = createAuthClient({
+export const betterAuthClient = createAuthClient({
   baseURL: envConfig.baseUrl,
 });
 ```
@@ -382,14 +382,14 @@ export const authClient = createAuthClient({
 </details>
 
 <details>
-<summary><code>./src/app/api/auth/[...all]/route.ts</code></summary>
+<summary><code>./src/app/api/betterAuth/[...all]/route.ts</code></summary>
 
 ```ts
-import { toNextJsHandler } from "better-auth/next-js";
+import { toNextJsHandler } from "better-betterAuth/next-js";
 
-import auth from "@/lib/auth";
+import betterAuth from "@/lib/betterAuth";
 
-export const { POST, GET } = toNextJsHandler(auth);
+export const { POST, GET } = toNextJsHandler(betterAuth);
 ```
 
 </details>
