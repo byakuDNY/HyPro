@@ -43,7 +43,7 @@ const Dashboard = async () => {
             <ChangePassword />
           </>
         ) : (
-          <p>Change password and email is not allowed in Oath</p>
+          <p>Change password and email is not allowed on Oath</p>
         )}
 
         <DeleteUser />
