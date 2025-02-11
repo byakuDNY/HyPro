@@ -1,17 +1,27 @@
-const envConfig = {
-  baseUrl: process.env.BASE_URL!,
-  db: { databaseUrl: process.env.DATABASE_URL! },
+const {
+  BASE_URL = "http://localhost:3000",
+  DATABASE_URL = "",
+  BETTER_AUTH_SECRET = "",
+  GITHUB_CLIENT_ID = "",
+  GITHUB_CLIENT_SECRET = "",
+  RESEND_API_KEY = "",
+  SENDER_EMAIL = "",
+} = process.env;
+
+const getEnvConfig = () => ({
+  baseUrl: BASE_URL,
+  database: { url: DATABASE_URL },
   auth: {
-    betterAuth: { secret: process.env.BETTER_AUTH_SECRET! },
-    githubOauth: {
-      clientId: process.env.GITHUB_CLIENT_ID!,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+    betterAuth: { secret: BETTER_AUTH_SECRET },
+    github: {
+      clientId: GITHUB_CLIENT_ID,
+      clientSecret: GITHUB_CLIENT_SECRET,
     },
   },
   email: {
-    resendApiKey: process.env.RESEND_API_KEY!,
-    customEmail: process.env.CUSTOM_EMAIL!,
+    resendApiKey: RESEND_API_KEY,
+    sender: SENDER_EMAIL,
   },
-};
+});
 
-export default envConfig;
+export default getEnvConfig;

@@ -28,7 +28,7 @@ const Welcome = ({ name }: { name: string }) => {
               features and be part of our growing community.
             </Text>
             <Button
-              href={`${envConfig.baseUrl}/sign-in`}
+              href={`${envConfig().baseUrl}/sign-in`}
               className="rounded-md bg-blue-500 px-4 py-2 text-white no-underline"
             >
               Get Started

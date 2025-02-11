@@ -21,64 +21,9 @@ export const users = pgTable("users", {
   name: varchar({ length: 255 }).notNull(),
   email: varchar({ length: 320 }).unique().notNull(),
   emailVerified: boolean().notNull(),
-  image: varchar({ length: 2048 }),
+  image: text(),
   createdAt: timestamp().notNull(),
   updatedAt: timestamp().notNull(),
-});
-
-export const sessions = pgTable("sessions", {
-  id: text().primaryKey(),
-  expiresAt: timestamp().notNull(),
-  token: text().notNull().unique(),
-  createdAt: timestamp().notNull(),
-  updatedAt: timestamp().notNull(),
-  ipAddress: text(),
-  userAgent: text(),
-  userId: text()
-    .references(() => users.id)
-    .notNull(),
-});
-
-export const accounts = pgTable("accounts", {
-  id: text().primaryKey(),
-  accountId: text().notNull(),
-  providerId: text().notNull(),
-  userId: text()
-    .references(() => users.id)
-    .notNull(),
-  accessToken: text(),
-  refreshToken: text(),
-  idToken: text(),
-  accessTokenExpiresAt: timestamp(),
-  refreshTokenExpiresAt: timestamp(),
-  scope: text(),
-  password: text(),
-  createdAt: timestamp().notNull(),
-  updatedAt: timestamp().notNull(),
-});
-
-export const verifications = pgTable("verifications", {
-  id: text().primaryKey(),
-  identifier: text().notNull(),
-  value: text().notNull(),
-  expiresAt: timestamp().notNull(),
-  createdAt: timestamp(),
-  updatedAt: timestamp(),
-});
-
-export const passkeys = pgTable("passkeys", {
-  id: text().primaryKey(),
-  name: text(),
-  publicKey: text().notNull(),
-  userId: text()
-    .notNull()
-    .references(() => users.id),
-  credentialID: text().notNull(),
-  counter: integer().notNull(),
-  deviceType: text().notNull(),
-  backedUp: boolean().notNull(),
-  transports: text(),
-  createdAt: timestamp(),
 });
 
 export const PROJECT_STATUS_ENUM = pgEnum("project_status", [
@@ -166,4 +111,95 @@ export const payments = pgTable("payments", {
   status: PAYMENT_STATUS_ENUM().default("PENDING").notNull(),
   method: varchar({ length: 255 }).notNull(),
   ...timestamps,
+});
+
+export const sessions = pgTable("sessions", {
+  id: text().primaryKey(),
+  expiresAt: timestamp().notNull(),
+  token: text().notNull().unique(),
+  createdAt: timestamp().notNull(),
+  updatedAt: timestamp().notNull(),
+  ipAddress: text(),
+  userAgent: text(),
+  userId: text()
+    .references(() => users.id)
+    .notNull(),
+  activeOrganizationId: text(),
+});
+
+export const accounts = pgTable("accounts", {
+  id: text().primaryKey(),
+  accountId: text().notNull(),
+  providerId: text().notNull(),
+  userId: text()
+    .references(() => users.id)
+    .notNull(),
+  accessToken: text(),
+  refreshToken: text(),
+  idToken: text(),
+  accessTokenExpiresAt: timestamp(),
+  refreshTokenExpiresAt: timestamp(),
+  scope: text(),
+  password: text(),
+  createdAt: timestamp().notNull(),
+  updatedAt: timestamp().notNull(),
+});
+
+export const verifications = pgTable("verifications", {
+  id: text().primaryKey(),
+  identifier: text().notNull(),
+  value: text().notNull(),
+  expiresAt: timestamp().notNull(),
+  createdAt: timestamp(),
+  updatedAt: timestamp(),
+});
+
+export const passkeys = pgTable("passkeys", {
+  id: text().primaryKey(),
+  name: text(),
+  publicKey: text().notNull(),
+  userId: text()
+    .notNull()
+    .references(() => users.id),
+  credentialID: text().notNull(),
+  counter: integer().notNull(),
+  deviceType: text().notNull(),
+  backedUp: boolean().notNull(),
+  transports: text(),
+  createdAt: timestamp(),
+});
+
+export const organizations = pgTable("organization", {
+  id: text().primaryKey(),
+  name: text().notNull(),
+  slug: text().unique(),
+  logo: text(),
+  createdAt: timestamp().notNull(),
+  metadata: text(),
+});
+
+export const members = pgTable("member", {
+  id: text().primaryKey(),
+  organizationId: text()
+    .notNull()
+    .references(() => organizations.id),
+  userId: text()
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  role: text().notNull(),
+  createdAt: timestamp().notNull(),
+});
+
+export const invitations = pgTable("invitation", {
+  id: text().primaryKey(),
+  organizationId: text()
+    .notNull()
+    .references(() => organizations.id),
+  email: text().notNull(),
+  role: text(),
+  status: text().notNull(),
+  expiresAt: timestamp().notNull(),
+  inviterId: text()
+    .notNull()
+    .references(() => users.id),
 });

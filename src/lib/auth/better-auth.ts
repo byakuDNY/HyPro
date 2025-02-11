@@ -1,13 +1,16 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { oneTap, organization } from "better-auth/plugins";
 import { passkey } from "better-auth/plugins/passkey";
 
 import db from "@/db";
 import resend from "@/lib/email/resend";
 
-import envConfig from "../env-config";
+import { reactInvitationEmail } from "../email/invitation";
+import getEnvConfig from "../env-config";
 
 const auth = betterAuth({
+  appName: "Hypro",
   database: drizzleAdapter(db, {
     provider: "pg",
     usePlural: true,
@@ -17,7 +20,7 @@ const auth = betterAuth({
     requireEmailVerification: true,
     sendResetPassword: async ({ user, url }) => {
       const { error } = await resend.emails.send({
-        from: envConfig.email.customEmail,
+        from: getEnvConfig().email.sender,
         to: user.email,
         subject: "Password Reset",
         text: `Your Password Reset Link ${url}`,
@@ -39,7 +42,7 @@ const auth = betterAuth({
       const updatedUrl = urlToUpdate.toString();
 
       const { error } = await resend.emails.send({
-        from: envConfig.email.customEmail,
+        from: getEnvConfig().email.sender,
         to: user.email,
         subject: "Email verification",
         text: `Your Email verification Link ${updatedUrl}`,
@@ -56,7 +59,7 @@ const auth = betterAuth({
       sendChangeEmailVerification: async ({ newEmail, url }) => {
         try {
           await resend.emails.send({
-            from: envConfig.email.customEmail,
+            from: getEnvConfig().email.sender,
             to: newEmail,
             subject: "Verify your email change",
             text: `Click the link to verify: ${url}`,
@@ -71,12 +74,10 @@ const auth = betterAuth({
     },
     deleteUser: {
       enabled: true,
-      sendDeleteAccountVerification: async (
-        { user, url }, // The original request object (optional)
-      ) => {
+      sendDeleteAccountVerification: async ({ user, url }) => {
         try {
           await resend.emails.send({
-            from: envConfig.email.customEmail,
+            from: getEnvConfig().email.sender,
             to: user.email,
             subject: "Verify your identity to delete account",
             text: `Click the link to verify: ${url}`,
@@ -92,16 +93,16 @@ const auth = betterAuth({
   },
   socialProviders: {
     github: {
-      clientId: envConfig.auth.githubOauth.clientId,
-      clientSecret: envConfig.auth.githubOauth.clientSecret,
+      clientId: getEnvConfig().auth.github.clientId,
+      clientSecret: getEnvConfig().auth.github.clientSecret,
     },
   },
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // 1 day
     cookieCache: {
-      enabled: true,
-      maxAge: 5 * 60, // Cache duration in seconds
+      enabled: false,
+      maxAge: 5 * 60, // 5 minutes
     },
   },
   rateLimit: {
@@ -115,10 +116,31 @@ const auth = betterAuth({
     },
   },
   plugins: [
+    organization({
+      async sendInvitationEmail(data) {
+        await resend.emails.send({
+          from: getEnvConfig().email.sender,
+          to: data.email,
+          subject: "You've been invited to join an organization",
+          react: reactInvitationEmail({
+            username: data.email,
+            invitedByUsername: data.inviter.user.name,
+            invitedByEmail: data.inviter.user.email,
+            teamName: data.organization.name,
+            inviteLink:
+              process.env.NODE_ENV === "development"
+                ? `http://localhost:3000/accept-invitation/${data.id}`
+                : `${
+                    process.env.BETTER_AUTH_URL ||
+                    "https://demo.better-auth.com"
+                  }/accept-invitation/${data.id}`,
+          }),
+        });
+      },
+    }),
     passkey(),
-    // nextCookies(),
+    oneTap(),
   ],
 });
 
-export type Session = typeof auth.$Infer.Session;
 export default auth;

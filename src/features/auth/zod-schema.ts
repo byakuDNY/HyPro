@@ -18,6 +18,8 @@ export const getPasswordSchema = () =>
     .min(8, { message: "Password must be at least 8 characters." })
     .max(32, { message: "Password must be less than 32 characters long" });
 
+export const getLogoSchema = () => z.string().optional();
+
 // schema for auth-form page
 export const authFormSchema = (formType: FormType) => {
   const baseSchema = z.object({

@@ -2,13 +2,14 @@ import { object } from "zod";
 
 import {
   getEmailSchema,
+  getLogoSchema,
   getNameSchema,
   getPasswordSchema,
 } from "@/features/auth/zod-schema";
 
 export const updateUserNameAndImageSchema = object({
   name: getNameSchema(),
-  // image: z.string().url(),
+  image: getLogoSchema(),
 });
 
 export const changeEmailSchema = object({

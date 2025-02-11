@@ -8,9 +8,9 @@ import { LayoutDashboard, Menu, X } from "lucide-react";
 import ModeToggle from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
 
-import Logo from "./header-component/logo";
-import MobileMenu from "./header-component/mobile-menu";
-import NavLinks from "./header-component/nav-links";
+import Logo from "./logo";
+import MobileMenu from "./mobile-menu";
+import NavLinks from "./nav-links";
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

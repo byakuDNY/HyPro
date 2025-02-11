@@ -1,9 +1,13 @@
-import { passkeyClient } from "better-auth/client/plugins";
+import {
+  organizationClient,
+  passkeyClient,
+  twoFactorClient,
+} from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 
-import envConfig from "../env-config";
+import getEnvConfig from "../env-config";
 
 export const authClient = createAuthClient({
-  baseURL: envConfig.baseUrl,
-  plugins: [passkeyClient()],
+  baseURL: getEnvConfig().baseUrl,
+  plugins: [passkeyClient(), twoFactorClient(), organizationClient()],
 });

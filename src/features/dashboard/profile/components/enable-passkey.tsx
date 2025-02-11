@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 
 import LoadingButton from "@/components/loading-button";
 import { toast } from "@/hooks/use-toast";
@@ -8,6 +8,7 @@ import { authClient } from "@/lib/auth/auth-client";
 
 const EnablePasskey = () => {
   const [isLoading, setIsLoading] = useState(false);
+
   const handleEnablePasskey = async () => {
     setIsLoading(true);
 

@@ -1,10 +1,10 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 
 import * as schema from "@/db/schema";
-import envConfig from "@/lib/env-config";
+import getEnvConfig from "@/lib/env-config";
 
 const db = drizzle({
-  connection: envConfig.db.databaseUrl,
+  connection: getEnvConfig().database.url,
   casing: "snake_case",
   schema,
 });

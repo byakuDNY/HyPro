@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -19,17 +19,17 @@ import { Input } from "@/components/ui/input";
 import { changeEmailSchema } from "@/features/dashboard/profile/zod-schema";
 import { toast } from "@/hooks/use-toast";
 import { authClient } from "@/lib/auth/auth-client";
-import { Session } from "@/lib/auth/better-auth";
+import { type Session } from "@/lib/auth/auth-types";
 
-const ChangeEmail = ({ session }: { session: Session }) => {
-  const { user } = session;
+const ChangeEmail = ({ session }: { session: Session | null }) => {
+  const user = session?.user;
 
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof changeEmailSchema>>({
     resolver: zodResolver(changeEmailSchema),
     defaultValues: {
-      email: user.email,
+      email: user?.email,
     },
   });
 
