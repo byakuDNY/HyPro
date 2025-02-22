@@ -1,4 +1,4 @@
-import Header from "@/components/header-component/header";
+import Header from "@/components/header";
 
 export default function AuthLayout({
   children,

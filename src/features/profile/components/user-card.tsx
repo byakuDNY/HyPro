@@ -57,17 +57,18 @@ const UserCard = ({
           <div className="flex items-center gap-4">
             <Avatar className="hidden h-9 w-9 sm:flex">
               <AvatarImage
-                src={session?.user.image || "#"}
+                src={session?.user.image}
                 alt="Avatar"
                 className="object-cover"
               />
+
               <AvatarFallback>{session?.user.name.charAt(0)}</AvatarFallback>
             </Avatar>
             <div className="grid gap-1">
-              <p className="text-sm font-medium leading-none">
+              <span className="text-sm font-medium leading-none">
                 {session?.user.name}
-              </p>
-              <p className="text-sm">{session?.user.email}</p>
+              </span>
+              <span className="text-sm">{session?.user.email}</span>
             </div>
           </div>
           {provider === "credentials" || <EditUserDialog session={session} />}
@@ -75,7 +76,7 @@ const UserCard = ({
 
         <div className="flex flex-wrap items-center justify-between gap-2 border-y py-4">
           <div className="flex flex-col gap-2">
-            <p className="text-sm">Passkeys</p>
+            <span className="text-sm">Passkeys</span>
             <div className="flex flex-wrap gap-2">
               <AddPasskey />
               <ListPasskeys />
@@ -256,7 +257,9 @@ function ListPasskeys() {
             </TableBody>
           </Table>
         ) : (
-          <p className="text-sm text-muted-foreground">No passkeys found</p>
+          <span className="text-sm text-muted-foreground">
+            No passkeys found
+          </span>
         )}
         {!data?.length && (
           <div className="flex flex-col gap-2">

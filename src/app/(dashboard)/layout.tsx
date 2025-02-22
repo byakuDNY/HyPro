@@ -1,11 +1,24 @@
+import AppSidebar from "@/components/sidebar";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <main>
-      <section className="pb-4 pt-16">{children}</section>
-    </main>
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <main>
+          <SidebarTrigger />
+          <section className="pb-4 pt-6">{children}</section>
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

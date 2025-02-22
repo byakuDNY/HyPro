@@ -64,10 +64,10 @@ export function OrganizationCard({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <div className="flex cursor-pointer items-center gap-1">
-                <p className="text-sm">
+                <span className="text-sm">
                   <span className="font-bold"></span>{" "}
                   {optimisticOrg?.name || "Personal"}
-                </p>
+                </span>
 
                 <ChevronDownIcon />
               </div>
@@ -82,7 +82,7 @@ export function OrganizationCard({
                   setOptimisticOrg(null);
                 }}
               >
-                <p className="sm text-sm">Personal</p>
+                <span className="sm text-sm">Personal</span>
               </DropdownMenuItem>
               {organizations.data?.map((org) => (
                 <DropdownMenuItem
@@ -103,7 +103,7 @@ export function OrganizationCard({
                     setOptimisticOrg(data);
                   }}
                 >
-                  <p className="sm text-sm">{org.name}</p>
+                  <span className="sm text-sm">{org.name}</span>
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
@@ -123,19 +123,19 @@ export function OrganizationCard({
             </AvatarFallback>
           </Avatar>
           <div>
-            <p>{optimisticOrg?.name || "Personal"}</p>
-            <p className="text-xs text-muted-foreground">
+            <span>{optimisticOrg?.name || "Personal"}</span>
+            <span className="text-xs text-muted-foreground">
               {optimisticOrg?.members.length || 1} members
-            </p>
+            </span>
           </div>
         </div>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col gap-8 md:flex-row">
           <div className="flex flex-grow flex-col gap-2">
-            <p className="border-b-2 border-b-foreground/10 font-medium">
+            <span className="border-b-2 border-b-foreground/10 font-medium">
               Members
-            </p>
+            </span>
             <div className="flex flex-col gap-2">
               {optimisticOrg?.members.map((member) => (
                 <div
@@ -153,10 +153,10 @@ export function OrganizationCard({
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="text-sm">{member.user.name}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <span className="text-sm">{member.user.name}</span>
+                      <span className="text-xs text-muted-foreground">
                         {member.role}
-                      </p>
+                      </span>
                     </div>
                   </div>
                   {member.role !== "owner" &&
@@ -186,8 +186,10 @@ export function OrganizationCard({
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="text-sm">{session?.user.name}</p>
-                      <p className="text-xs text-muted-foreground">Owner</p>
+                      <span className="text-sm">{session?.user.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        Owner
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -195,9 +197,9 @@ export function OrganizationCard({
             </div>
           </div>
           <div className="flex flex-grow flex-col gap-2">
-            <p className="border-b-2 border-b-foreground/10 font-medium">
+            <span className="border-b-2 border-b-foreground/10 font-medium">
               Invites
-            </p>
+            </span>
             <div className="flex flex-col gap-2">
               {optimisticOrg?.invitations
                 .filter((invitation) => invitation.status === "pending")
@@ -207,10 +209,10 @@ export function OrganizationCard({
                     className="flex items-center justify-between"
                   >
                     <div>
-                      <p className="text-sm">{invitation.email}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <span className="text-sm">{invitation.email}</span>
+                      <span className="text-xs text-muted-foreground">
                         {invitation.role}
-                      </p>
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Button
@@ -268,9 +270,9 @@ export function OrganizationCard({
                   </div>
                 ))}
               {optimisticOrg?.invitations.length === 0 && (
-                <p className="text-sm text-muted-foreground">
+                <span className="text-sm text-muted-foreground">
                   No Active Invitations
-                </p>
+                </span>
               )}
               {!optimisticOrg?.id && (
                 <Label className="text-xs text-muted-foreground">
@@ -313,7 +315,7 @@ function InviteMemberDialog({
       <DialogTrigger asChild>
         <Button size="sm" className="w-full gap-2" variant="secondary">
           <MailPlus size={16} />
-          <p>Invite Member</p>
+          <span>Invite Member</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="w-11/12 sm:max-w-[425px]">

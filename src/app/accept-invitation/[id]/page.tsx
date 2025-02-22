@@ -101,14 +101,14 @@ export default function InvitationPage() {
           <CardContent>
             {invitationStatus === "pending" && (
               <div className="space-y-4">
-                <p>
+                <span>
                   <strong>{invitation?.inviterEmail}</strong> has invited you to
                   join <strong>{invitation?.organizationName}</strong>.
-                </p>
-                <p>
+                </span>
+                <span>
                   This invitation was sent to{" "}
                   <strong>{invitation?.email}</strong>.
-                </p>
+                </span>
               </div>
             )}
             {invitationStatus === "accepted" && (

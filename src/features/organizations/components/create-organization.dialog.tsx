@@ -5,12 +5,11 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, PlusIcon } from "lucide-react";
+import { Loader2, PlusCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
-// Import necessary icons
 import {
   Dialog,
   DialogContent,
@@ -28,9 +27,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { createOrganizationSchema } from "@/features/dashboard/organization/zod-schema";
+import { createOrganizationSchema } from "@/features/organizations/zod-schema";
 import { toast } from "@/hooks/use-toast";
 import { authClient } from "@/lib/auth/auth-client";
+import { convertImageToBase64 } from "@/lib/utils";
 
 function CreateOrganizationDialog() {
   const router = useRouter();
@@ -113,21 +113,12 @@ function CreateOrganizationDialog() {
     }
   };
 
-  async function convertImageToBase64(file: File): Promise<string | undefined> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = (error) => reject(error);
-      reader.readAsDataURL(file);
-    });
-  }
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button size="sm" className="w-full gap-2" variant="default">
-          <PlusIcon />
-          <p>New Organization</p>
+          <PlusCircle />
+          <span>New Organization</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="w-11/12 sm:max-w-[425px]">

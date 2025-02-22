@@ -1,4 +1,4 @@
-import Logo from "@/components/header-component/logo";
+import Logo from "@/components/header/logo";
 import ModeToggle from "@/components/mode-toggle";
 
 export default function AuthLayout({

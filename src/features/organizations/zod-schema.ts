@@ -1,6 +1,6 @@
 import { object } from "zod";
 
-import { getLogoSchema, getNameSchema } from "@/features/auth/zod-schema";
+import { getLogoSchema, getNameSchema } from "@/lib/zod-helper";
 
 export const createOrganizationSchema = object({
   name: getNameSchema(),

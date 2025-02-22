@@ -96,12 +96,16 @@ const auth = betterAuth({
       clientId: getEnvConfig().auth.github.clientId,
       clientSecret: getEnvConfig().auth.github.clientSecret,
     },
+    google: {
+      clientId: getEnvConfig().auth.google.clientId,
+      clientSecret: getEnvConfig().auth.google.clientSecret,
+    },
   },
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // 1 day
     cookieCache: {
-      enabled: false,
+      enabled: true,
       maxAge: 5 * 60, // 5 minutes
     },
   },
@@ -137,6 +141,10 @@ const auth = betterAuth({
           }),
         });
       },
+      // allowUserToCreateOrganization: async (user) => {
+      //   const subscription = await getSubscription(user.id);
+      //   return subscription.plan === "pro";
+      // },
     }),
     passkey(),
     oneTap(),

@@ -54,7 +54,7 @@ export default function CopyButton({ textToCopy }: CopyButtonProps) {
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>{isCopied ? "Copied!" : "Copy to clipboard"}</p>
+          <span>{isCopied ? "Copied!" : "Copy to clipboard"}</span>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

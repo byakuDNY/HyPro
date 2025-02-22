@@ -4,6 +4,8 @@ const {
   BETTER_AUTH_SECRET = "",
   GITHUB_CLIENT_ID = "",
   GITHUB_CLIENT_SECRET = "",
+  GOOGLE_CLIENT_ID = "",
+  GOOGLE_CLIENT_SECRET = "",
   RESEND_API_KEY = "",
   SENDER_EMAIL = "",
 } = process.env;
@@ -16,6 +18,10 @@ const getEnvConfig = () => ({
     github: {
       clientId: GITHUB_CLIENT_ID,
       clientSecret: GITHUB_CLIENT_SECRET,
+    },
+    google: {
+      clientId: GOOGLE_CLIENT_ID,
+      clientSecret: GOOGLE_CLIENT_SECRET,
     },
   },
   email: {

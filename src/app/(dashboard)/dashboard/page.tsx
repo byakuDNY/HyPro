@@ -1,5 +1,11 @@
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Dashboard - HyPro",
+};
+
 const Dashboard = async () => {
-  return <div className="w-full">Dashboard</div>;
+  return <div>Dashboard</div>;
 };
 
 export default Dashboard;

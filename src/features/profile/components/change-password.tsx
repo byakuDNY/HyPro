@@ -26,7 +26,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { changePasswordSchema } from "@/features/dashboard/profile/zod-schema";
+import { changePasswordSchema } from "@/features/profile/zod-schema";
 import { toast } from "@/hooks/use-toast";
 import { authClient } from "@/lib/auth/auth-client";
 

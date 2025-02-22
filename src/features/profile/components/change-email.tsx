@@ -16,7 +16,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { changeEmailSchema } from "@/features/dashboard/profile/zod-schema";
+import { changeEmailSchema } from "@/features/profile/zod-schema";
 import { toast } from "@/hooks/use-toast";
 import { authClient } from "@/lib/auth/auth-client";
 import { type Session } from "@/lib/auth/auth-types";

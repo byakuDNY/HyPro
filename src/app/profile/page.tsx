@@ -1,8 +1,8 @@
 import { headers } from "next/headers";
 
-import ChangeEmail from "@/features/dashboard/profile/components/change-email";
-import DeleteUser from "@/features/dashboard/profile/components/delete-user";
-import UserCard from "@/features/dashboard/profile/components/user-card";
+import ChangeEmail from "@/features/profile/components/change-email";
+import DeleteUser from "@/features/profile/components/delete-user";
+import UserCard from "@/features/profile/components/user-card";
 import auth from "@/lib/auth/better-auth";
 
 const Profile = async () => {

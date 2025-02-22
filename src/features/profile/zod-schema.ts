@@ -5,7 +5,7 @@ import {
   getLogoSchema,
   getNameSchema,
   getPasswordSchema,
-} from "@/features/auth/zod-schema";
+} from "@/lib/zod-helper";
 
 export const updateUserNameAndImageSchema = object({
   name: getNameSchema(),
