@@ -11,50 +11,44 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const ModeToggle = () => {
-  const { setTheme, theme } = useTheme();
+export function ModeToggle() {
+  const { setTheme } = useTheme();
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="w-[140px] justify-start">
-          {theme === "light" && <Sun className="mr-2 h-4 w-4" />}
-          {theme === "dark" && <Moon className="mr-2 h-4 w-4" />}
-          {theme === "system" && <Laptop className="mr-2 h-4 w-4" />}
-          <span>
-            {theme === "system"
-              ? "System"
-              : theme === "light"
-                ? "Light"
-                : "Dark"}
-          </span>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-[40] w-[132.5px] justify-start"
+        >
+          <div className="flex rotate-0 scale-100 items-center transition-all dark:-rotate-90 dark:scale-0">
+            <Sun className="mr-5 h-4 w-4" />
+            Light
+          </div>
+
+          <div className="absolute flex rotate-90 scale-0 items-center transition-all dark:-rotate-0 dark:scale-100">
+            <Moon className="mr-5 h-4 w-4" />
+            Dark
+          </div>
+
+          <span className="sr-only">Toggle theme</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[140px]">
-        <DropdownMenuItem
-          onClick={() => setTheme("light")}
-          className="flex items-center"
-        >
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => setTheme("light")}>
           <Sun className="mr-2 h-4 w-4" />
-          <span>Light</span>
+          Light
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => setTheme("dark")}
-          className="flex items-center"
-        >
+        <DropdownMenuItem onClick={() => setTheme("dark")}>
           <Moon className="mr-2 h-4 w-4" />
-          <span>Dark</span>
+          Dark
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => setTheme("system")}
-          className="flex items-center"
-        >
+        <DropdownMenuItem onClick={() => setTheme("system")}>
           <Laptop className="mr-2 h-4 w-4" />
-          <span>System</span>
+          System
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
-};
-
-export default ModeToggle;
+}
