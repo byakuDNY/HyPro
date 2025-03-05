@@ -4,34 +4,26 @@ import { Frown } from "lucide-react";
 
 const NotFound = () => {
   return (
-    <div className="mx-auto flex max-w-3xl flex-col items-center justify-center space-y-3 py-8">
-      <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
-        Page Not Found
+    <div className="flex flex-col items-center justify-center space-y-4 px-4 py-8 text-center">
+      <h1 className="text-3xl font-extrabold tracking-tight md:text-5xl">
+        404 | Page Not Found
       </h1>
-      <div className="">
-        <h2 className="scroll-m-20 text-balance border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
-          The page you're looking for does not exist.
-        </h2>
-      </div>
-      <p className="max-w-xl">
-        You must have typed in a wrong address or the page was removed, in the
-        meantime try again or{" "}
-        <Link
-          href={"/"}
-          className="inline-block text-primary transition-transform duration-200 ease-in-out hover:scale-95"
-        >
+      <h2 className="text-2xl font-semibold tracking-tight md:text-4xl">
+        The page you&apos;re looking for does not exist.
+      </h2>
+      <p className="text-lg md:text-xl">
+        You must have typed in a wrong address or the page was removed. Try
+        again or{" "}
+        <Link href="/" className="text-primary hover:underline">
           return to the home page
         </Link>{" "}
         or{" "}
-        <Link
-          href={"/dashboard"}
-          className="inline-block text-primary transition-transform duration-200 ease-in-out hover:scale-95"
-        >
+        <Link href="/dashboard" className="text-primary hover:underline">
           dashboard
         </Link>
         .
       </p>
-      <Frown className="h-16 w-16 text-primary" />
+      <Frown className="h-16 w-16 text-primary md:h-32 md:w-32" />
     </div>
   );
 };
