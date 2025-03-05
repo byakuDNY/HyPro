@@ -23,12 +23,15 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { authFormSchema } from "@/features/auth/zod-schema";
-import { toast } from "@/hooks/use-toast";
+import { showErrorToast } from "@/hooks/use-error-toast";
+import { showSuccessToast } from "@/hooks/use-success-toast";
 import { authClient } from "@/lib/auth/auth-client";
 
-export type FormType = "sign-in" | "sign-up";
+export type FormType = "SIGN_IN" | "SIGN_UP";
 
 const AuthForm = ({ type }: { type: FormType }) => {
+  const isSignUp = type === "SIGN_UP";
+
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -52,22 +55,21 @@ const AuthForm = ({ type }: { type: FormType }) => {
   const formSchema = authFormSchema(type);
   const form = useForm<z.infer<ReturnType<typeof authFormSchema>>>({
     resolver: zodResolver(formSchema),
-    defaultValues:
-      type === "sign-up"
-        ? {
-            name: "",
-            email: "",
-            password: "",
-            confirmPassword: "",
-            terms: false,
-          }
-        : { email: "", password: "" },
+    defaultValues: isSignUp
+      ? {
+          name: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
+          terms: false,
+        }
+      : { email: "", password: "" },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
 
-    type === "sign-up"
+    isSignUp
       ? await authClient.signUp.email(
           {
             name: "name" in values ? (values.name ?? "") : "",
@@ -77,17 +79,14 @@ const AuthForm = ({ type }: { type: FormType }) => {
           {
             onSuccess: () => {
               form.reset();
-              toast({
-                title: "Account created",
+              showSuccessToast({
                 description:
                   "Check your email for a confirmation link. If you don't receive an email, please check your spam folder.",
               });
             },
             onError: (ctx: any) => {
-              toast({
-                title: "Error",
+              showErrorToast({
                 description: ctx.error.message,
-                variant: "destructive",
               });
             },
           },
@@ -100,17 +99,15 @@ const AuthForm = ({ type }: { type: FormType }) => {
           },
           {
             onError: (ctx: any) => {
-              toast({
-                title: "Error",
+              showErrorToast({
                 description: ctx.error.message,
-                variant: "destructive",
               });
             },
           },
         );
 
     setIsLoading(false);
-  }
+  };
 
   const handleSignInWithGoogle = async () => {
     setIsLoading(true);
@@ -121,10 +118,9 @@ const AuthForm = ({ type }: { type: FormType }) => {
       },
       {
         onError: (ctx: any) => {
-          toast({
+          showErrorToast({
             title: "Google Sign-In Failed",
             description: ctx.error.message,
-            variant: "destructive",
           });
         },
       },
@@ -141,10 +137,9 @@ const AuthForm = ({ type }: { type: FormType }) => {
       },
       {
         onError: (ctx: any) => {
-          toast({
+          showErrorToast({
             title: "GitHub Sign-In Failed",
             description: ctx.error.message,
-            variant: "destructive",
           });
         },
       },
@@ -154,23 +149,19 @@ const AuthForm = ({ type }: { type: FormType }) => {
 
   const handleSignInWithPasskey = async () => {
     setIsLoading(true);
-
-    const data = await authClient.signIn.passkey({
+    await authClient.signIn.passkey({
       fetchOptions: {
         onSuccess() {
           router.push("/dashboard");
         },
         onError(ctx: any) {
-          toast({
+          showErrorToast({
             title: "Passkey Sign-In Failed",
             description: ctx.error.message,
-            variant: "destructive",
           });
         },
       },
     });
-    console.log(data);
-
     setIsLoading(false);
   };
 
@@ -178,7 +169,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
     <Card className="mx-auto w-full max-w-md">
       <CardHeader>
         <CardTitle className="text-center text-2xl font-bold">
-          {type === "sign-up" ? "Create an Account" : "Welcome Back!"}
+          {isSignUp ? "Create an Account" : "Welcome Back!"}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -190,7 +181,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
             onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-4"
           >
-            {type === "sign-up" && (
+            {isSignUp && (
               <FormField
                 control={form.control}
                 name="name"
@@ -260,7 +251,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
               )}
             />
 
-            {type == "sign-in" && (
+            {isSignUp && (
               <div className="flex items-center">
                 <div className="flex items-center gap-2">
                   <Checkbox
@@ -281,7 +272,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
               </div>
             )}
 
-            {type === "sign-up" && (
+            {isSignUp && (
               <>
                 <FormField
                   control={form.control}
@@ -360,7 +351,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
             )}
 
             <LoadingButton isLoading={isLoading} className="w-full">
-              {type === "sign-up" ? "Sign Up" : "Sign In"}
+              {isSignUp ? "Sign Up" : "Sign In"}
             </LoadingButton>
           </form>
         </Form>
@@ -387,7 +378,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
               alt="Google Logo"
               className="mr-2 h-4 w-4"
             />
-            {type === "sign-up" ? "Sign Up with Google" : "Sign In with Google"}
+            {isSignUp ? "Sign Up with Google" : "Sign In with Google"}
           </LoadingButton>
 
           <LoadingButton
@@ -412,7 +403,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
                 clipRule="evenodd"
               ></path>
             </svg>
-            {type === "sign-up" ? "Sign Up with Github" : "Sign In with Github"}
+            {isSignUp ? "Sign Up with Github" : "Sign In with Github"}
           </LoadingButton>
 
           <LoadingButton
@@ -423,21 +414,17 @@ const AuthForm = ({ type }: { type: FormType }) => {
             variant="outline"
           >
             <KeyRound className="mr-2 h-4 w-4" />
-            {type === "sign-up"
-              ? "Sign Up with Passkey"
-              : "Sign In with Passkey"}
+            {isSignUp ? "Sign Up with Passkey" : "Sign In with Passkey"}
           </LoadingButton>
         </section>
 
         <span className="mt-4 text-center text-sm">
-          {type === "sign-up"
-            ? "Already have an account?"
-            : "Don't have an account?"}
+          {isSignUp ? "Already have an account?" : "Don't have an account?"}
           <Link
-            href={type === "sign-up" ? "/sign-in" : "/sign-up"}
+            href={isSignUp ? "/sign-in" : "/sign-up"}
             className="ml-1 font-medium text-primary hover:underline"
           >
-            {type === "sign-up" ? "Sign In" : "Sign Up"}
+            {isSignUp ? "Sign In" : "Sign Up"}
           </Link>
         </span>
       </CardContent>

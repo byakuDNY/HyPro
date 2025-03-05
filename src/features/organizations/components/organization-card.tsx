@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { authClient } from "@/lib/auth/auth-client";
-import { ActiveOrganization, Session } from "@/lib/auth/auth-types";
+import { type ActiveOrganization, type Session } from "@/lib/auth/types";
 
 import CreateOrganizationDialog from "./create-organization.dialog";
 

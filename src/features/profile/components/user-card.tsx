@@ -35,7 +35,7 @@ import {
 import SignOutClient from "@/features/auth/components/sign-out-client";
 import { toast } from "@/hooks/use-toast";
 import { authClient } from "@/lib/auth/auth-client";
-import { type Session } from "@/lib/auth/auth-types";
+import { type Session } from "@/lib/auth/types";
 
 import ChangePassword from "./change-password";
 import EditUserDialog from "./edit-user.dialog";

@@ -31,7 +31,7 @@ import { Input } from "@/components/ui/input";
 import { updateUserNameAndImageSchema } from "@/features/profile/zod-schema";
 import { toast } from "@/hooks/use-toast";
 import { authClient } from "@/lib/auth/auth-client";
-import { type Session } from "@/lib/auth/auth-types";
+import { type Session } from "@/lib/auth/types";
 import { convertImageToBase64 } from "@/lib/utils";
 
 const EditUserDialog = ({ session }: { session: Session | null }) => {
@@ -57,7 +57,7 @@ const EditUserDialog = ({ session }: { session: Session | null }) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      // setImage(file);
+      setImage(file);
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
       };
@@ -88,11 +88,9 @@ const EditUserDialog = ({ session }: { session: Session | null }) => {
             description: ctx.error.message,
             variant: "destructive",
           });
-          console.log(ctx);
         },
       },
     );
-
     router.refresh();
     setImage(null);
     setImagePreview(null);
@@ -152,9 +150,9 @@ const EditUserDialog = ({ session }: { session: Session | null }) => {
                         <div className="relative h-16 w-16 overflow-hidden rounded-sm">
                           <Image
                             src={imagePreview}
-                            alt="Profile preview"
-                            layout="fill"
-                            objectFit="cover"
+                            alt="Profile image preview"
+                            className="object-cover"
+                            fill
                           />
                         </div>
                       )}

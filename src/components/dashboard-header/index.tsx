@@ -12,6 +12,7 @@ import {
 } from "../ui/dropdown-menu";
 
 const DashboardHeader = () => {
+  const textFluid = "text-[min(10vw,70px)]";
   return (
     <div>
       <DropdownMenu>

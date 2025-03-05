@@ -1,5 +1,4 @@
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 
 import { OrganizationCard } from "@/features/organizations/components/organization-card";
 import auth from "@/lib/auth/better-auth";
@@ -12,9 +11,7 @@ const Organization = async () => {
     auth.api.getFullOrganization({
       headers: await headers(),
     }),
-  ]).catch((e) => {
-    throw redirect("/sign-in");
-  });
+  ]);
 
   return (
     <OrganizationCard session={session} activeOrganization={organization} />

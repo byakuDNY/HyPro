@@ -12,7 +12,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import auth from "@/lib/auth/better-auth";
-import { sidebarLinks } from "@/lib/sidebar-links";
+import { SIDEBAR_ITEMS } from "@/lib/constants";
 
 import SidebarHeaderDialog from "./sidebar-header.dialog";
 
@@ -25,7 +25,7 @@ const AppSidebar = async () => {
     <Sidebar variant="inset" collapsible="icon">
       <SidebarHeaderDialog activeOrganization={organization} />
       <SidebarContent>
-        {sidebarLinks.map(({ header, links }) => (
+        {SIDEBAR_ITEMS.map(({ header, links }) => (
           <SidebarGroup key={header}>
             <SidebarGroupLabel>{header}</SidebarGroupLabel>
             <SidebarGroupContent>

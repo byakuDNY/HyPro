@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { nextCookies } from "better-auth/next-js";
 import { oneTap, organization } from "better-auth/plugins";
 import { passkey } from "better-auth/plugins/passkey";
 
@@ -7,7 +8,7 @@ import db from "@/db";
 import resend from "@/lib/email/resend";
 
 import { reactInvitationEmail } from "../email/invitation";
-import getEnvConfig from "../env-config";
+import envConfig from "../env-config";
 
 const auth = betterAuth({
   appName: "Hypro",
@@ -20,7 +21,7 @@ const auth = betterAuth({
     requireEmailVerification: true,
     sendResetPassword: async ({ user, url }) => {
       const { error } = await resend.emails.send({
-        from: getEnvConfig().email.sender,
+        from: envConfig().email.sender,
         to: user.email,
         subject: "Password Reset",
         text: `Your Password Reset Link ${url}`,
@@ -42,7 +43,7 @@ const auth = betterAuth({
       const updatedUrl = urlToUpdate.toString();
 
       const { error } = await resend.emails.send({
-        from: getEnvConfig().email.sender,
+        from: envConfig().email.sender,
         to: user.email,
         subject: "Email verification",
         text: `Your Email verification Link ${updatedUrl}`,
@@ -59,7 +60,7 @@ const auth = betterAuth({
       sendChangeEmailVerification: async ({ newEmail, url }) => {
         try {
           await resend.emails.send({
-            from: getEnvConfig().email.sender,
+            from: envConfig().email.sender,
             to: newEmail,
             subject: "Verify your email change",
             text: `Click the link to verify: ${url}`,
@@ -77,7 +78,7 @@ const auth = betterAuth({
       sendDeleteAccountVerification: async ({ user, url }) => {
         try {
           await resend.emails.send({
-            from: getEnvConfig().email.sender,
+            from: envConfig().email.sender,
             to: user.email,
             subject: "Verify your identity to delete account",
             text: `Click the link to verify: ${url}`,
@@ -93,19 +94,19 @@ const auth = betterAuth({
   },
   socialProviders: {
     github: {
-      clientId: getEnvConfig().auth.github.clientId,
-      clientSecret: getEnvConfig().auth.github.clientSecret,
+      clientId: envConfig().auth.github.clientId,
+      clientSecret: envConfig().auth.github.clientSecret,
     },
     google: {
-      clientId: getEnvConfig().auth.google.clientId,
-      clientSecret: getEnvConfig().auth.google.clientSecret,
+      clientId: envConfig().auth.google.clientId,
+      clientSecret: envConfig().auth.google.clientSecret,
     },
   },
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // 1 day
     cookieCache: {
-      enabled: true,
+      enabled: false,
       maxAge: 5 * 60, // 5 minutes
     },
   },
@@ -123,7 +124,7 @@ const auth = betterAuth({
     organization({
       async sendInvitationEmail(data) {
         await resend.emails.send({
-          from: getEnvConfig().email.sender,
+          from: envConfig().email.sender,
           to: data.email,
           subject: "You've been invited to join an organization",
           react: reactInvitationEmail({
@@ -148,6 +149,7 @@ const auth = betterAuth({
     }),
     passkey(),
     oneTap(),
+    nextCookies(),
   ],
 });
 

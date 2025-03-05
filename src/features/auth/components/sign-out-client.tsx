@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import { useState } from "react";
 
 import LoadingButton from "@/components/loading-button";
 import { toast } from "@/hooks/use-toast";

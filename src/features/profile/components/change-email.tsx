@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { changeEmailSchema } from "@/features/profile/zod-schema";
 import { toast } from "@/hooks/use-toast";
 import { authClient } from "@/lib/auth/auth-client";
-import { type Session } from "@/lib/auth/auth-types";
+import { type Session } from "@/lib/auth/types";
 
 const ChangeEmail = ({ session }: { session: Session | null }) => {
   const user = session?.user;

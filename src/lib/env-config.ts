@@ -10,7 +10,7 @@ const {
   SENDER_EMAIL = "",
 } = process.env;
 
-const getEnvConfig = () => ({
+const envConfig = () => ({
   baseUrl: BASE_URL,
   database: { url: DATABASE_URL },
   auth: {
@@ -30,4 +30,4 @@ const getEnvConfig = () => ({
   },
 });
 
-export default getEnvConfig;
+export default envConfig;

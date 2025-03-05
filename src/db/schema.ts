@@ -40,11 +40,14 @@ export const clients = pgTable("clients", {
   description: varchar({ length: 255 }),
   contact: varchar({ length: 255 }).notNull(),
   phone: varchar({ length: 255 }).unique().notNull(),
-  country: varchar({ length: 255 }).notNull(),
+  country: varchar({ length: 255 }),
   ...timestamps,
   userId: text()
     .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
+  organizationId: text().references(() => organizations.id, {
+    onDelete: "cascade",
+  }),
 });
 
 export const projects = pgTable("projects", {
@@ -65,6 +68,9 @@ export const projects = pgTable("projects", {
   startDate: date().defaultNow().notNull(),
   endDate: date().notNull(),
   ...timestamps,
+  organizationId: text().references(() => organizations.id, {
+    onDelete: "cascade",
+  }),
 });
 
 export const projectKV = pgTable("project_kv", {

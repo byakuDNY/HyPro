@@ -5,15 +5,15 @@ import {
 } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 
-import getEnvConfig from "../env-config";
+import envConfig from "../env-config";
 
 export const authClient = createAuthClient({
-  baseURL: getEnvConfig().baseUrl,
+  baseURL: envConfig().baseUrl,
   plugins: [
     passkeyClient(),
     organizationClient(),
     oneTapClient({
-      clientId: getEnvConfig().auth.google.clientId,
+      clientId: envConfig().auth.google.clientId,
       autoSelect: false,
       cancelOnTapOutside: true,
       context: "signin",

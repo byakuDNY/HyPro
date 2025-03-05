@@ -10,7 +10,7 @@ import { showErrorToast } from "@/hooks/use-error-toast";
 import { showLoadingToast } from "@/hooks/use-loading-toast";
 import { showSuccessToast } from "@/hooks/use-success-toast";
 import { authClient } from "@/lib/auth/auth-client";
-import { ActiveOrganization, Organization } from "@/lib/auth/auth-types";
+import { ActiveOrganization, Organization } from "@/lib/auth/types";
 
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import {
