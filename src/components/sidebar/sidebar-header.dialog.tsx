@@ -1,24 +1,25 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
 
-import { ChevronsUpDown, Loader2 } from "lucide-react";
+// import { useState } from "react";
 
-import { showErrorToast } from "@/hooks/use-error-toast";
-import { showLoadingToast } from "@/hooks/use-loading-toast";
-import { showSuccessToast } from "@/hooks/use-success-toast";
-import { authClient } from "@/lib/auth/auth-client";
-import { ActiveOrganization, Organization } from "@/lib/auth/types";
+// import { ChevronsUpDown, Loader2 } from "lucide-react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
+// import { showErrorToast } from "@/hooks/use-error-toast";
+// import { showLoadingToast } from "@/hooks/use-loading-toast";
+// import { showSuccessToast } from "@/hooks/use-success-toast";
+// import { authClient } from "@/lib/auth/auth-client";
+// import { ActiveOrganization, Organization } from "@/lib/auth/types";
+
+import AppLogoIcon from "../app-logo-icon";
+// import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+// import {
+//   DropdownMenu,
+//   DropdownMenuContent,
+//   DropdownMenuItem,
+//   DropdownMenuTrigger,
+// } from "../ui/dropdown-menu";
 import {
   SidebarHeader,
   SidebarMenu,
@@ -26,28 +27,30 @@ import {
   SidebarMenuItem,
 } from "../ui/sidebar";
 
-const SidebarHeaderDialog = ({
-  activeOrganization,
-}: {
-  activeOrganization: ActiveOrganization | null;
-}) => {
-  const [optimisticOrg, setOptimisticOrg] = useState<ActiveOrganization | null>(
-    activeOrganization,
-  );
-  const { data: organizations, isPending } = authClient.useListOrganizations();
+const SidebarHeaderDialog = (
+  {
+    //   activeOrganization,
+    // }: {
+    //   activeOrganization: ActiveOrganization | null;
+  },
+) => {
+  // const [optimisticOrg, setOptimisticOrg] = useState<ActiveOrganization | null>(
+  //   activeOrganization,
+  // );
+  // const { data: organizations, isPending } = authClient.useListOrganizations();
 
-  if (isPending) {
-    return (
-      <SidebarMenuButton
-        variant="outline"
-        className="flex items-center justify-center"
-      >
-        <Loader2 className="animate-spin" />
-      </SidebarMenuButton>
-    );
-  }
+  // if (isPending) {
+  //   return (
+  //     <SidebarMenuButton
+  //       variant="outline"
+  //       className="flex items-center justify-center"
+  //     >
+  //       <Loader2 className="animate-spin" />
+  //     </SidebarMenuButton>
+  //   );
+  // }
 
-  const handleSetOrganization = async (org: Organization) => {
+  /* const handleSetOrganization = async (org: Organization) => {
     if (org.id === optimisticOrg?.id) {
       return;
     }
@@ -80,32 +83,23 @@ const SidebarHeaderDialog = ({
         },
       },
     );
-  };
+  }; */
 
   return (
-    <SidebarHeader>
+    <SidebarHeader className="border-b border-sidebar-border">
       <SidebarMenu>
-        <SidebarMenuItem className="space-y-4">
-          <Link
-            href="/"
-            className="flex w-fit items-center space-x-2 transition-transform duration-200 ease-in-out hover:scale-105"
-          >
-            <Image
-              src="/favicon-light.svg"
-              alt="HyPro Logo"
-              width={40}
-              height={40}
-              className="dark:hidden"
-            />
-            <Image
-              src="/favicon-dark.svg"
-              alt="HyPro Logo"
-              width={40}
-              height={40}
-              className="hidden dark:block"
-            />
-          </Link>
-          <DropdownMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton size="lg" asChild>
+            <Link href="/" prefetch>
+              <div className="flex items-center space-x-2 transition-transform duration-200 ease-in-out hover:scale-105">
+                <AppLogoIcon className="size-8 fill-current" />
+                <span className="text-xl font-bold">
+                  <span className="text-primary">Hy</span>Pro
+                </span>
+              </div>
+            </Link>
+          </SidebarMenuButton>
+          {/*           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton className="ring-primary" variant="outline">
                 <Avatar className="mr-2 h-5 w-5">
@@ -155,7 +149,7 @@ const SidebarHeaderDialog = ({
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
-          </DropdownMenu>
+          </DropdownMenu> */}
         </SidebarMenuItem>
       </SidebarMenu>
     </SidebarHeader>

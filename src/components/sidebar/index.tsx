@@ -1,4 +1,4 @@
-import { headers } from "next/headers";
+// import { headers } from "next/headers";
 import Link from "next/link";
 
 import {
@@ -11,19 +11,19 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import auth from "@/lib/auth/better-auth";
+// import auth from "@/lib/auth/better-auth";
 import { SIDEBAR_ITEMS } from "@/lib/constants";
 
 import SidebarHeaderDialog from "./sidebar-header.dialog";
 
 const AppSidebar = async () => {
-  const organization = await auth.api.getFullOrganization({
-    headers: await headers(),
-  });
+  // const organization = await auth.api.getFullOrganization({
+  //   headers: await headers(),
+  // });
 
   return (
     <Sidebar variant="inset" collapsible="icon">
-      <SidebarHeaderDialog activeOrganization={organization} />
+      <SidebarHeaderDialog />
       <SidebarContent>
         {SIDEBAR_ITEMS.map(({ header, links }) => (
           <SidebarGroup key={header}>
@@ -33,7 +33,7 @@ const AppSidebar = async () => {
                 {links?.map(({ title, href, icon: Icon }) => (
                   <SidebarMenuItem key={title}>
                     <SidebarMenuButton asChild>
-                      <Link href={href}>
+                      <Link href={href} prefetch>
                         <Icon />
                         <span>{title}</span>
                       </Link>
