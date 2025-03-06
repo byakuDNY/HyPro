@@ -14,6 +14,7 @@ import {
 // import auth from "@/lib/auth/better-auth";
 import { SIDEBAR_ITEMS } from "@/lib/constants";
 
+import SidebarFooterComponent from "./sidebar-footer-component";
 import SidebarHeaderDialog from "./sidebar-header.dialog";
 
 const AppSidebar = async () => {
@@ -24,6 +25,7 @@ const AppSidebar = async () => {
   return (
     <Sidebar variant="inset" collapsible="icon">
       <SidebarHeaderDialog />
+
       <SidebarContent>
         {SIDEBAR_ITEMS.map(({ header, links }) => (
           <SidebarGroup key={header}>
@@ -45,6 +47,8 @@ const AppSidebar = async () => {
           </SidebarGroup>
         ))}
       </SidebarContent>
+
+      <SidebarFooterComponent />
     </Sidebar>
   );
 };

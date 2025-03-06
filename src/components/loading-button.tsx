@@ -11,6 +11,7 @@ const LoadingButton = ({
   className,
   type,
   variant,
+  unstyled = false,
 }: {
   children: React.ReactNode;
   isLoading: boolean;
@@ -24,15 +25,31 @@ const LoadingButton = ({
     | "outline"
     | "ghost"
     | "link";
+  unstyled?: boolean;
 }) => {
+  if (!unstyled) {
+    return (
+      <Button
+        className={className}
+        type={type}
+        variant={variant}
+        disabled={isLoading}
+        onClick={onClick}
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Please wait
+          </>
+        ) : (
+          children
+        )}
+      </Button>
+    );
+  }
+
   return (
-    <Button
-      className={className}
-      type={type}
-      variant={variant}
-      disabled={isLoading}
-      onClick={onClick}
-    >
+    <button className={className} disabled={isLoading} onClick={onClick}>
       {isLoading ? (
         <>
           <Loader2 className="h-4 w-4 animate-spin" />
@@ -41,7 +58,7 @@ const LoadingButton = ({
       ) : (
         children
       )}
-    </Button>
+    </button>
   );
 };
 export default LoadingButton;

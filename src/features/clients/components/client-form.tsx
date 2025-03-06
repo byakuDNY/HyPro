@@ -108,11 +108,7 @@ const ClientForm = ({
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Enter client name"
-                      {...field}
-                      type="text"
-                    />
+                    <Input placeholder="Enter client name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -144,11 +140,7 @@ const ClientForm = ({
                 <FormItem>
                   <FormLabel>Contact Name</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Enter client contact name"
-                      {...field}
-                      type="text"
-                    />
+                    <Input placeholder="Enter client contact name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -182,7 +174,6 @@ const ClientForm = ({
                     <Input
                       placeholder="Enter client contact phone number"
                       {...field}
-                      type="text"
                     />
                   </FormControl>
                   <FormMessage />

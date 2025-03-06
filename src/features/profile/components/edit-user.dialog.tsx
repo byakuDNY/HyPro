@@ -69,7 +69,7 @@ const EditUserDialog = ({ session }: { session: Session | null }) => {
     values: z.infer<typeof updateUserNameAndImageSchema>,
   ) => {
     setIsLoading(true);
-    const base64Image = image ? await convertImageToBase64(image) : undefined;
+    const base64Image = image ? await convertImageToBase64(image) : null;
 
     await authClient.updateUser(
       {

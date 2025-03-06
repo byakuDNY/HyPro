@@ -13,13 +13,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import { ClientSelectType } from "../../types";
+
 interface RowActionsProps<TData> {
   row: Row<TData>;
 }
 
 const RowActions = <TData,>({ row }: RowActionsProps<TData>) => {
-  const project = row.original;
-
+  const { id } = row.original as ClientSelectType;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -34,11 +35,7 @@ const RowActions = <TData,>({ row }: RowActionsProps<TData>) => {
       <DropdownMenuContent align="end" className="w-[160px]">
         <DropdownMenuItem>Edit</DropdownMenuItem>
         <DropdownMenuItem>Make a copy</DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() =>
-            navigator.clipboard.writeText((project as { id: string }).id)
-          }
-        >
+        <DropdownMenuItem onClick={() => console.log(clientData.id)}>
           Copy payment ID
           <DropdownMenuShortcut>⌘C</DropdownMenuShortcut>
         </DropdownMenuItem>

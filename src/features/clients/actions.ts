@@ -2,7 +2,7 @@
 
 import { headers } from "next/headers";
 
-import { and, desc, eq, isNull, or } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { DatabaseError } from "pg";
 
 import db from "@/db";
@@ -19,6 +19,8 @@ export const getClients = async (
   organizationId: string | null,
 ): Promise<GetClientsResult> => {
   try {
+    console.log(userId, organizationId);
+
     const data: ClientSelectType[] = await db
       .select({
         id: clients.id,
@@ -36,10 +38,10 @@ export const getClients = async (
       .where(
         and(
           eq(users.id, userId),
-          or(
-            eq(clients.organizationId, organizationId),
-            isNull(clients.organizationId),
-          ),
+          // Handle both cases: organizationId equals the value OR is null
+          organizationId === null
+            ? isNull(clients.organizationId)
+            : eq(clients.organizationId, organizationId),
         ),
       )
 
@@ -61,7 +63,7 @@ export const createClient = async (
     headers: await headers(),
   });
 
-  if (!session || !session.user) {
+  if (!session || !session.user.id) {
     return { error: "Unauthorized" };
   }
 

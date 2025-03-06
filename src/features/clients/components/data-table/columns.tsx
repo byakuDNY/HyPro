@@ -5,6 +5,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { type ClientSelectType } from "@/features/clients/types";
 
 import ColumnHeader from "./column-header";
+import RowActions from "./row-actions";
 
 const Columns: ColumnDef<ClientSelectType>[] = [
   {
@@ -42,6 +43,13 @@ const Columns: ColumnDef<ClientSelectType>[] = [
   {
     accessorKey: "updatedAt",
     header: ({ column }) => <ColumnHeader column={column} title="updatedAt" />,
+  },
+  {
+    accessorKey: "actions",
+    header: "actions",
+    cell: ({ row }) => {
+      return <RowActions row={row} />;
+    },
   },
 ];
 

@@ -41,7 +41,11 @@ const DataTable = <TData, TValue>({
 }: DataTableProps<TData, TValue>) => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
+    description: false,
+    createdAt: false,
+    updatedAt: false,
+  });
   const [rowSelection, setRowSelection] = useState({});
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -82,14 +86,6 @@ const DataTable = <TData, TValue>({
       columnVisibility,
       rowSelection,
       pagination,
-    },
-
-    initialState: {
-      columnVisibility: {
-        description: false,
-        createdAt: false,
-        updatedAt: false,
-      },
     },
   });
 

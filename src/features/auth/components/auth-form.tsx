@@ -69,42 +69,44 @@ const AuthForm = ({ type }: { type: FormType }) => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
 
-    isSignUp
-      ? await authClient.signUp.email(
-          {
-            name: "name" in values ? (values.name ?? "") : "",
-            email: values.email,
-            password: values.password,
+    if (isSignUp) {
+      await authClient.signUp.email(
+        {
+          name: "name" in values ? (values.name ?? "") : "",
+          email: values.email,
+          password: values.password,
+        },
+        {
+          onSuccess: () => {
+            form.reset();
+            showSuccessToast({
+              description:
+                "Check your email for a confirmation link. If you don't receive an email, please check your spam folder.",
+            });
           },
-          {
-            onSuccess: () => {
-              form.reset();
-              showSuccessToast({
-                description:
-                  "Check your email for a confirmation link. If you don't receive an email, please check your spam folder.",
-              });
-            },
-            onError: (ctx: any) => {
-              showErrorToast({
-                description: ctx.error.message,
-              });
-            },
+          onError: (ctx) => {
+            showErrorToast({
+              description: ctx.error.message,
+            });
           },
-        )
-      : await authClient.signIn.email(
-          {
-            email: values.email,
-            password: values.password,
-            callbackURL: "/dashboard",
+        },
+      );
+    } else {
+      await authClient.signIn.email(
+        {
+          email: values.email,
+          password: values.password,
+          callbackURL: "/dashboard",
+        },
+        {
+          onError: (ctx) => {
+            showErrorToast({
+              description: ctx.error.message,
+            });
           },
-          {
-            onError: (ctx: any) => {
-              showErrorToast({
-                description: ctx.error.message,
-              });
-            },
-          },
-        );
+        },
+      );
+    }
 
     setIsLoading(false);
   };
@@ -117,7 +119,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
         callbackURL: "/dashboard",
       },
       {
-        onError: (ctx: any) => {
+        onError: (ctx) => {
           showErrorToast({
             title: "Google Sign-In Failed",
             description: ctx.error.message,
@@ -136,7 +138,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
         callbackURL: "/dashboard",
       },
       {
-        onError: (ctx: any) => {
+        onError: (ctx) => {
           showErrorToast({
             title: "GitHub Sign-In Failed",
             description: ctx.error.message,
@@ -154,7 +156,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
         onSuccess() {
           router.push("/dashboard");
         },
-        onError(ctx: any) {
+        onError(ctx) {
           showErrorToast({
             title: "Passkey Sign-In Failed",
             description: ctx.error.message,

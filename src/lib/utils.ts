@@ -13,3 +13,8 @@ export const convertImageToBase64 = async (file: File): Promise<string> => {
     reader.readAsDataURL(file);
   });
 };
+
+export const getInitials = (name: string) => {
+  const names = name.split(" ");
+  return names.map((n) => n.charAt(0)).join("");
+};

@@ -12,7 +12,7 @@ const Clients = async () => {
   const session = (await auth.api.getSession({
     headers: await headers(),
   })) as Session;
-
+  console.log("SESSION", session);
   if (
     !session?.user.id ||
     session?.session.activeOrganizationId === undefined

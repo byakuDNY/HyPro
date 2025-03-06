@@ -36,6 +36,7 @@ import SignOutClient from "@/features/auth/components/sign-out-client";
 import { toast } from "@/hooks/use-toast";
 import { authClient } from "@/lib/auth/auth-client";
 import { type Session } from "@/lib/auth/types";
+import { getInitials } from "@/lib/utils";
 
 import ChangePassword from "./change-password";
 import EditUserDialog from "./edit-user.dialog";
@@ -47,6 +48,9 @@ const UserCard = ({
   session: Session | null;
   provider: string;
 }) => {
+  const { name = "", email, image } = session?.user || {};
+  const imageSrc = image ?? undefined;
+
   return (
     <Card>
       <CardHeader>
@@ -57,18 +61,16 @@ const UserCard = ({
           <div className="flex items-center gap-4">
             <Avatar className="hidden h-9 w-9 sm:flex">
               <AvatarImage
-                src={session?.user.image}
+                src={imageSrc}
                 alt="Avatar"
                 className="object-cover"
               />
 
-              <AvatarFallback>{session?.user.name.charAt(0)}</AvatarFallback>
+              <AvatarFallback>{getInitials(name)}</AvatarFallback>
             </Avatar>
             <div className="grid gap-1">
-              <span className="text-sm font-medium leading-none">
-                {session?.user.name}
-              </span>
-              <span className="text-sm">{session?.user.email}</span>
+              <span className="text-sm font-medium leading-none">{name}</span>
+              <span className="text-sm">{email}</span>
             </div>
           </div>
           {provider === "credentials" || <EditUserDialog session={session} />}

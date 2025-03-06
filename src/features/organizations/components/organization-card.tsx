@@ -33,6 +33,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { showErrorToast } from "@/hooks/use-error-toast";
+import { showLoadingToast } from "@/hooks/use-loading-toast";
+import { showSuccessToast } from "@/hooks/use-success-toast";
 import { toast } from "@/hooks/use-toast";
 import { authClient } from "@/lib/auth/auth-client";
 import { type ActiveOrganization, type Session } from "@/lib/auth/types";
@@ -97,9 +100,29 @@ export function OrganizationCard({
                       invitations: [],
                       ...org,
                     });
-                    const { data } = await authClient.organization.setActive({
-                      organizationId: org.id,
-                    });
+                    const { data } = await authClient.organization.setActive(
+                      {
+                        organizationId: org.id,
+                      },
+                      {
+                        onSuccess: (ctx) => {
+                          showSuccessToast({
+                            description: `${ctx.data.name} is now set as the active organization.`,
+                          });
+                        },
+                        onError: (ctx) => {
+                          showErrorToast({
+                            description: ctx.error.message,
+                          });
+                        },
+                        onRequest: () => {
+                          showLoadingToast({
+                            description: "Setting active organization...",
+                          });
+                        },
+                      },
+                    );
+                    console.log("SETTING ORG", data);
                     setOptimisticOrg(data);
                   }}
                 >

@@ -2,10 +2,10 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, PlusCircle } from "lucide-react";
+import { Loader2, PlusCircle, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -48,21 +48,11 @@ function CreateOrganizationDialog() {
     },
   });
 
-  useEffect(() => {
-    const subscription = form.watch(({ name }) => {
-      if (!form.getValues("slug")) {
-        const generatedSlug = name?.trim().toLowerCase().replace(/\s+/g, "-");
-        form.setValue("slug", generatedSlug || "");
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [form.watch, form.setValue, form.getValues]);
-
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setLogo(file);
       const reader = new FileReader();
+      setLogo(file);
       reader.onloadend = () => setLogoPreview(reader.result as string);
       reader.readAsDataURL(file);
     }
@@ -129,7 +119,13 @@ function CreateOrganizationDialog() {
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4"
+            onChange={() => {
+              console.log(form.formState.errors);
+            }}
+          >
             <FormField
               control={form.control}
               name="name"
@@ -161,29 +157,43 @@ function CreateOrganizationDialog() {
               name="logo"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Logo</FormLabel>
+                  <FormLabel>Profile Logo</FormLabel>
                   <FormControl>
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        handleLogoChange(e);
-                        field.onChange(e.target.files?.[0] || undefined); // Update form value
-                      }}
-                    />
+                    <div className="flex items-end gap-4">
+                      {logoPreview && (
+                        <div className="relative h-16 w-16 overflow-hidden rounded-sm">
+                          <Image
+                            src={logoPreview}
+                            alt="Profile logo preview"
+                            className="object-cover"
+                            fill
+                          />
+                        </div>
+                      )}
+                      <div className="flex w-full items-center gap-2">
+                        <Input
+                          type="file"
+                          {...field}
+                          accept="logo/*"
+                          onChange={handleLogoChange}
+                          className="w-full text-muted-foreground"
+                        />
+                        {logoPreview && (
+                          <X
+                            className="cursor-pointer"
+                            onClick={() => {
+                              setLogo(null);
+                              setLogoPreview(null);
+                              form.reset({
+                                logo: undefined,
+                              });
+                            }}
+                          />
+                        )}
+                      </div>
+                    </div>
                   </FormControl>
                   <FormMessage />
-                  {logoPreview && (
-                    <div className="mt-2">
-                      <Image
-                        src={logoPreview}
-                        alt="Logo preview"
-                        className="h-16 w-16 object-cover"
-                        width={64}
-                        height={64}
-                      />
-                    </div>
-                  )}
                 </FormItem>
               )}
             />

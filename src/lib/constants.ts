@@ -3,6 +3,7 @@ import {
   CircleOff,
   Home,
   LayoutGrid,
+  Settings,
   Timer,
   Users,
 } from "lucide-react";
@@ -14,18 +15,13 @@ export const NAV_ITEMS = [
 
 export const SIDEBAR_ITEMS = [
   {
-    header: "Dashboard",
+    header: "Main Navigation",
     links: [
       {
         title: "Overview",
         href: "/dashboard",
         icon: Home,
       },
-    ],
-  },
-  {
-    header: "Clients & Projects",
-    links: [
       {
         title: "Clients",
         href: "/clients",
@@ -36,11 +32,6 @@ export const SIDEBAR_ITEMS = [
         href: "/projects",
         icon: LayoutGrid,
       },
-    ],
-  },
-  {
-    header: "Organizations",
-    links: [
       {
         title: "Organizations",
         href: "/organizations",
@@ -49,114 +40,14 @@ export const SIDEBAR_ITEMS = [
     ],
   },
   {
-    header: "Finance",
-    // links: [
-    //   {
-    //     title: "Invoices",
-    //     href: "/dashboard/invoices",
-    //     icon: DollarSign,
-    //   },
-    //   {
-    //     title: "Payments",
-    //     href: "/dashboard/payments",
-    //     icon: Handshake,
-    //   },
-    // ],
-  },
-  {
-    header: "Team",
-    // links: [
-    //   {
-    //     title: "Members",
-    //     href: "/dashboard/members",
-    //     icon: User2,
-    //   },
-    //   {
-    //     title: "Roles",
-    //     href: "/dashboard/roles",
-    //     icon: Lock,
-    //   },
-    // ],
-  },
-  {
-    header: "Communication",
-    // links: [
-    //   {
-    //     title: "Emails",
-    //     href: "/dashboard/emails",
-    //     icon: Inbox,
-    //   },
-    //   {
-    //     title: "Bulk Emails",
-    //     href: "/dashboard/bulk-emails",
-    //     icon: Lock,
-    //   },
-    // ],
-  },
-  {
-    header: "Portfolio",
-    // links: [
-    //   {
-    //     title: "Generate Portfolio",
-    //     href: "/dashboard/generate-portfolio",
-    //     icon: Inbox,
-    //   },
-    // ],
-  },
-  {
-    header: "Brand",
-    // links: [
-    //   {
-    //     title: "Settings",
-    //     href: "/dashboard/settings",
-    //     icon: Settings,
-    //   },
-    //   {
-    //     title: "File Manager",
-    //     href: "/dashboard/file-manager",
-    //     icon: Lock,
-    //   },
-    // ],
-  },
-  {
-    header: "Reports",
-    // links: [
-    //   {
-    //     title: "Project Progress",
-    //     href: "/dashboard/project-progress",
-    //     icon: Inbox,
-    //   },
-    //   {
-    //     title: "Financial Summary",
-    //     href: "/dashboard/financial-summary",
-    //     icon: Inbox,
-    //   },
-    //   {
-    //     title: "Time Tracking",
-    //     href: "/dashboard/time-tracking",
-    //     icon: Inbox,
-    //   },
-    // ],
-  },
-  {
-    header: "Settings",
-    // links: [
-    //   {
-    //     title: "Account Settings",
-    //     href: "/dashboard/account-settings",
-    //     icon: Inbox,
-    //   },
-    //   {
-    //     title: "Notifications",
-    //     href: "/dashboard/notifications",
-    //     icon: Inbox,
-    //   },
-    //   {
-    //     title: "Integrations",
-    //     href: "/dashboard/integrations",
-    //     icon: Inbox,
-    //   },
-    // ],
+    header: "Other",
+    links: [
+      {
+        title: "Settings",
+        href: "/settings",
+        icon: Settings,
+      },
+    ],
   },
 ];
 

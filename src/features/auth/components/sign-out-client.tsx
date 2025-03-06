@@ -7,7 +7,7 @@ import LoadingButton from "@/components/loading-button";
 import { toast } from "@/hooks/use-toast";
 import { authClient } from "@/lib/auth/auth-client";
 
-const SignOutClient = () => {
+const SignOutClient = ({ unstyled = false }: { unstyled?: boolean }) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -35,7 +35,11 @@ const SignOutClient = () => {
   };
 
   return (
-    <LoadingButton isLoading={isLoading} onClick={handleSignOut}>
+    <LoadingButton
+      isLoading={isLoading}
+      onClick={handleSignOut}
+      unstyled={unstyled}
+    >
       Sign Out
     </LoadingButton>
   );

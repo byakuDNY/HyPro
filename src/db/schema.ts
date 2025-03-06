@@ -35,11 +35,11 @@ export const PROJECT_STATUS_ENUM = pgEnum("project_status", [
 
 export const clients = pgTable("clients", {
   id: uuid().primaryKey().defaultRandom(),
-  name: varchar({ length: 255 }).unique().notNull(),
-  email: varchar({ length: 320 }).unique().notNull(),
+  name: varchar({ length: 255 }).notNull(),
+  email: varchar({ length: 320 }).notNull(),
   description: varchar({ length: 255 }),
   contact: varchar({ length: 255 }).notNull(),
-  phone: varchar({ length: 255 }).unique().notNull(),
+  phone: varchar({ length: 255 }).notNull(),
   country: varchar({ length: 255 }),
   ...timestamps,
   userId: text()
