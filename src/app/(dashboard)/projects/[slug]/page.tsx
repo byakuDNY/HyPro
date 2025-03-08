@@ -1,9 +1,4 @@
 const ProjectDetail = async ({
-  //   params,
-  // }: {
-  //   params: {
-  //     slug: string;
-  //   };
   params,
 }: {
   params: Promise<{

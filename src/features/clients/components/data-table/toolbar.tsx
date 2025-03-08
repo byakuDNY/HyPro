@@ -3,10 +3,9 @@
 import { Table } from "@tanstack/react-table";
 import { X } from "lucide-react";
 
+import ViewOptions from "@/components/table/view-options";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-import ViewOptions from "./view-options";
 
 interface ToolbarProps<TData> {
   table: Table<TData>;
@@ -19,7 +18,7 @@ const Toolbar = <TData,>({ table }: ToolbarProps<TData>) => {
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
         <Input
-          placeholder="Filter tasks..."
+          placeholder="Search..."
           value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("name")?.setFilterValue(event.target.value)

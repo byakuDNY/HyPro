@@ -1,6 +1,7 @@
 import {
   boolean,
   date,
+  index,
   integer,
   numeric,
   pgEnum,
@@ -13,7 +14,7 @@ import {
 
 const timestamps = {
   createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp({ withTimezone: true }),
+  updatedAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
 };
 
 export const users = pgTable("users", {
@@ -33,22 +34,26 @@ export const PROJECT_STATUS_ENUM = pgEnum("project_status", [
   "CANCELLED",
 ]);
 
-export const clients = pgTable("clients", {
-  id: uuid().primaryKey().defaultRandom(),
-  name: varchar({ length: 255 }).notNull(),
-  email: varchar({ length: 320 }).notNull(),
-  description: varchar({ length: 255 }),
-  contact: varchar({ length: 255 }).notNull(),
-  phone: varchar({ length: 255 }).notNull(),
-  country: varchar({ length: 255 }),
-  ...timestamps,
-  userId: text()
-    .references(() => users.id, { onDelete: "cascade" })
-    .notNull(),
-  organizationId: text().references(() => organizations.id, {
-    onDelete: "cascade",
-  }),
-});
+export const clients = pgTable(
+  "clients",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    name: varchar({ length: 255 }).notNull(),
+    email: varchar({ length: 320 }).notNull(),
+    description: varchar({ length: 255 }),
+    contact: varchar({ length: 255 }).notNull(),
+    phone: varchar({ length: 255 }).notNull(),
+    country: varchar({ length: 255 }),
+    ...timestamps,
+    userId: text()
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull(),
+    organizationId: text().references(() => organizations.id, {
+      onDelete: "cascade",
+    }),
+  },
+  (t) => [index().on(t.userId), index().on(t.organizationId)],
+);
 
 export const projects = pgTable("projects", {
   id: uuid().primaryKey().defaultRandom(),

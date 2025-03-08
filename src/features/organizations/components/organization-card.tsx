@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { ChevronDownIcon, Loader2, MailPlus } from "lucide-react";
@@ -49,6 +50,8 @@ export function OrganizationCard({
   session: Session | null;
   activeOrganization: ActiveOrganization | null;
 }) {
+  const router = useRouter();
+
   const organizations = authClient.useListOrganizations();
   const [optimisticOrg, setOptimisticOrg] = useState<ActiveOrganization | null>(
     activeOrganization,
@@ -100,7 +103,7 @@ export function OrganizationCard({
                       invitations: [],
                       ...org,
                     });
-                    const { data } = await authClient.organization.setActive(
+                    await authClient.organization.setActive(
                       {
                         organizationId: org.id,
                       },
@@ -109,6 +112,8 @@ export function OrganizationCard({
                           showSuccessToast({
                             description: `${ctx.data.name} is now set as the active organization.`,
                           });
+                          setOptimisticOrg(ctx.data);
+                          router.refresh();
                         },
                         onError: (ctx) => {
                           showErrorToast({
@@ -122,8 +127,6 @@ export function OrganizationCard({
                         },
                       },
                     );
-                    console.log("SETTING ORG", data);
-                    setOptimisticOrg(data);
                   }}
                 >
                   <span className="sm text-sm">{org.name}</span>

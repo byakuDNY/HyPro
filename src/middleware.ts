@@ -11,7 +11,13 @@ export async function middleware(request: NextRequest) {
     "/forgot-password",
     "/reset-password",
   ]; // auth routes
-  const protectedRoutes = ["/dashboard"]; // protected routes
+  const protectedRoutes = [
+    "/dashboard",
+    "/clients",
+    "/projects",
+    "/organizations",
+    "/profile",
+  ]; // protected routes
 
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
   const isProtectedRoute = protectedRoutes.some((route) =>

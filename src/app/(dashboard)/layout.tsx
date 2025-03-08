@@ -20,7 +20,7 @@ export default async function DashboardLayout({
       <SidebarInset>
         <main>
           <SidebarTrigger />
-          <section className="pb-4 pt-6">{children}</section>
+          <section className="">{children}</section>
         </main>
       </SidebarInset>
     </SidebarProvider>

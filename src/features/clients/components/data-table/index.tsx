@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   ColumnDef,
@@ -10,14 +10,13 @@ import {
   VisibilityState,
   flexRender,
   getCoreRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 
+import Pagination from "@/components/table/pagination";
 import {
   Table,
   TableBody,
@@ -27,7 +26,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { Pagination } from "./pagination";
 import Toolbar from "./toolbar";
 
 interface DataTableProps<TData, TValue> {
@@ -39,18 +37,42 @@ const DataTable = <TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) => {
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [sorting, setSorting] = useState<SortingState>([
+    {
+      id: "updatedAt",
+      desc: true,
+    },
+  ]);
+
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
-    description: false,
-    createdAt: false,
-    updatedAt: false,
+
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+    () => {
+      const saved = localStorage.getItem("table-columnVisibility");
+      return saved ? JSON.parse(saved) : {};
+    },
+  );
+
+  useEffect(() => {
+    localStorage.setItem(
+      "table-columnVisibility",
+      JSON.stringify(columnVisibility),
+    );
+  }, [columnVisibility]);
+
+  const [pagination, setPagination] = useState<PaginationState>(() => {
+    const saved = localStorage.getItem("table-pagination");
+    return saved
+      ? JSON.parse(saved)
+      : {
+          pageIndex: 0,
+          pageSize: 10,
+        };
   });
-  const [rowSelection, setRowSelection] = useState({});
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
-  });
+
+  useEffect(() => {
+    localStorage.setItem("table-pagination", JSON.stringify(pagination));
+  }, [pagination]);
 
   const table = useReactTable({
     data,
@@ -72,19 +94,10 @@ const DataTable = <TData, TValue>({
     //visibility
     onColumnVisibilityChange: setColumnVisibility,
 
-    //row selection
-    onRowSelectionChange: setRowSelection,
-    enableRowSelection: true,
-
-    //faceted filter
-    getFacetedUniqueValues: getFacetedUniqueValues(),
-    getFacetedRowModel: getFacetedRowModel(),
-
     state: {
       sorting,
       columnFilters,
       columnVisibility,
-      rowSelection,
       pagination,
     },
   });
@@ -100,7 +113,13 @@ const DataTable = <TData, TValue>({
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead
+                      key={header.id}
+                      className={`${
+                        header.column.id === "actions" &&
+                        "sticky right-0 w-12 bg-primary-foreground"
+                      }`}
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -121,7 +140,14 @@ const DataTable = <TData, TValue>({
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      key={cell.id}
+                      className={`${
+                        cell.column.id === "actions"
+                          ? "sticky right-0 w-12 bg-primary-foreground"
+                          : ""
+                      }`}
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),

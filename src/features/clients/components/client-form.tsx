@@ -7,15 +7,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
 import LoadingButton from "@/components/loading-button";
-import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -28,74 +26,92 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { type ClientInsertType } from "@/features/clients/types";
 import { showErrorToast } from "@/hooks/use-error-toast";
+import { showSuccessToast } from "@/hooks/use-success-toast";
 
 import { createClient, updateClient } from "../actions";
 import { clientInsertSchema } from "../zod-schema";
 
-const ClientForm = ({
-  userId,
-  organizationId,
-  clientId,
+const ClientFormClient = ({
+  id,
+  isEditMode = false,
+  name,
+  description,
+  contact,
+  email,
+  phone,
+  country,
 }: {
-  userId: string;
-  organizationId: string | null | undefined;
-  clientId?: string;
+  id?: string;
+  isEditMode?: boolean;
+  name?: string;
+  description?: string;
+  contact?: string;
+  email?: string;
+  phone?: string;
+  country?: string;
 }) => {
-  const isEditMode = clientId !== undefined;
   const router = useRouter();
 
   const [errorMessage, setErrorMessage] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
 
   const form = useForm<ClientInsertType>({
     resolver: zodResolver(clientInsertSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      contact: "",
-      email: "",
-      phone: "",
-      country: "",
-      userId: userId,
-      organizationId: organizationId,
-    },
+    defaultValues: isEditMode
+      ? {
+          id: id,
+          name: name,
+          description: description,
+          contact: contact,
+          email: email,
+          phone: phone,
+          country: country,
+        }
+      : {
+          name: "",
+          description: "",
+          contact: "",
+          email: "",
+          phone: "",
+          country: "",
+        },
   });
 
   const onSubmit = async (values: ClientInsertType) => {
-    const result = isEditMode
+    console.log(values);
+
+    const { error } = isEditMode
       ? await updateClient(values)
       : await createClient(values);
 
-    if ("error" in result) {
-      setErrorMessage(result.error);
+    if (error) {
+      setErrorMessage(error);
       showErrorToast({
-        description: result.error,
+        description: error,
       });
       return;
     }
 
+    showSuccessToast({
+      description: "Client created successfully",
+    });
+
     form.reset();
-    router.refresh();
-    setIsOpen(false);
+    router.push("/clients");
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button aria-label={isEditMode ? "Update" : "Create"}>
-          {isEditMode ? "Update" : "Create"}
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle> Client Information</DialogTitle>
-        </DialogHeader>
-        <DialogDescription>
-          Please fill in your client details below.
-        </DialogDescription>
+    <Card className="mx-auto my-10 max-w-2xl space-y-8 bg-white px-6">
+      <CardHeader>
+        <CardTitle>Client Information</CardTitle>
+        <CardDescription>
+          {`Please ${isEditMode ? "update" : "fill in"} your client details below.`}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
         <Form {...form}>
           <form
             onChange={() => {
+              console.log(form.getValues("id")); // Log form errors
               console.log(form.formState.errors);
             }}
             onSubmit={form.handleSubmit(onSubmit)}
@@ -213,9 +229,9 @@ const ClientForm = ({
             )}
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </CardContent>
+    </Card>
   );
 };
 
-export default ClientForm;
+export default ClientFormClient;

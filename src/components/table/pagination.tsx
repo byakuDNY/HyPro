@@ -19,10 +19,10 @@ interface PaginationProps<TData> {
   table: Table<TData>;
 }
 
-export function Pagination<TData>({ table }: PaginationProps<TData>) {
+const Pagination = <TData,>({ table }: PaginationProps<TData>) => {
   return (
     <div className="flex items-center justify-between px-2">
-      <div className="flex-1 text-sm text-muted-foreground">
+      <div className="flex-1 text-sm text-transparent">
         {table.getFilteredSelectedRowModel().rows.length} of{" "}
         {table.getFilteredRowModel().rows.length} row(s) selected.
       </div>
@@ -39,7 +39,7 @@ export function Pagination<TData>({ table }: PaginationProps<TData>) {
               <SelectValue placeholder={table.getState().pagination.pageSize} />
             </SelectTrigger>
             <SelectContent side="top">
-              {[10, 20, 30, 40, 50].map((pageSize) => (
+              {[5, 10, 20, 30].map((pageSize) => (
                 <SelectItem key={pageSize} value={`${pageSize}`}>
                   {pageSize}
                 </SelectItem>
@@ -92,4 +92,6 @@ export function Pagination<TData>({ table }: PaginationProps<TData>) {
       </div>
     </div>
   );
-}
+};
+
+export default Pagination;

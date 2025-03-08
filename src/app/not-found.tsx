@@ -4,7 +4,7 @@ import { Frown } from "lucide-react";
 
 const NotFound = () => {
   return (
-    <div className="flex flex-col items-center justify-center space-y-4 px-4 py-8 text-center">
+    <div className="flex min-h-screen flex-col items-center justify-center space-y-4 px-4 py-8 text-center">
       <h1 className="text-3xl font-extrabold tracking-tight md:text-5xl">
         404 | Page Not Found
       </h1>
@@ -15,7 +15,7 @@ const NotFound = () => {
         You must have typed in a wrong address or the page was removed. Try
         again or{" "}
         <Link href="/" className="text-primary hover:underline">
-          return to the home page
+          go back to the homepage
         </Link>{" "}
         or{" "}
         <Link href="/dashboard" className="text-primary hover:underline">
