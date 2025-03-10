@@ -1,5 +1,8 @@
 // import { headers } from "next/headers";
 import Link from "next/link";
+import { Suspense } from "react";
+
+import { Loader2 } from "lucide-react";
 
 import {
   Sidebar,
@@ -48,7 +51,9 @@ const AppSidebar = async () => {
         ))}
       </SidebarContent>
 
-      <SidebarFooterComponent />
+      <Suspense fallback={<Loader2 className="mb-2 h-6 w-full animate-spin" />}>
+        <SidebarFooterComponent />
+      </Suspense>
     </Sidebar>
   );
 };

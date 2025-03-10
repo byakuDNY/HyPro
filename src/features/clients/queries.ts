@@ -65,7 +65,7 @@ export const getClient = async (clientId: string) => {
       .where(eq(clients.id, clientId));
 
     if (data.length === 0) {
-      notFound();
+      return notFound();
     }
 
     return { data: data[0] };

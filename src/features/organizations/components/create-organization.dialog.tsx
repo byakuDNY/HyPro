@@ -164,7 +164,7 @@ function CreateOrganizationDialog() {
                         <div className="relative h-16 w-16 overflow-hidden rounded-sm">
                           <Image
                             src={logoPreview}
-                            alt="Profile logo preview"
+                            alt="Organization logo preview"
                             className="object-cover"
                             fill
                           />
