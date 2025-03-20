@@ -1,5 +1,5 @@
 const {
-  BASE_URL = "http://localhost:3000",
+  BASE_URL = "",
   DATABASE_URL = "",
   BETTER_AUTH_SECRET = "",
   GITHUB_CLIENT_ID = "",
