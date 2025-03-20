@@ -25,7 +25,7 @@ export async function middleware(request: NextRequest) {
   );
 
   // const cookies = getSessionCookie(request);
-  const cookies = request.cookies.has("better-auth.session_token");
+  const cookies = request.cookies.has("__Secure-better-auth.session_token");
 
   if (cookies) {
     if (isAuthRoute) {
