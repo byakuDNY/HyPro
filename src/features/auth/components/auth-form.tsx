@@ -111,6 +111,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
         },
         {
           onError: (ctx) => {
+            console.error(ctx.error);
             showToast("error", ctx.error.message);
           },
         },
@@ -129,6 +130,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
               router.push("/dashboard");
             },
             onError(ctx) {
+              console.error(ctx.error);
               showToast("error", ctx.error.message);
             },
           },
@@ -141,6 +143,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
           },
           {
             onError: (ctx) => {
+              console.error(ctx.error);
               showToast("error", ctx.error.message);
             },
           },

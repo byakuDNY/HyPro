@@ -14,9 +14,6 @@ export const authClient = createAuthClient({
     organizationClient(),
     oneTapClient({
       clientId: envConfig().auth.google.clientId,
-      autoSelect: false,
-      cancelOnTapOutside: true,
-      context: "signin",
     }),
   ],
 });
