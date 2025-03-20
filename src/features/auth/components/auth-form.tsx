@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -23,8 +24,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { authFormSchema } from "@/features/auth/zod-schema";
-import { showErrorToast } from "@/hooks/use-error-toast";
-import { showSuccessToast } from "@/hooks/use-success-toast";
+import { showToast } from "@/hooks/use-custom-toast";
 import { authClient } from "@/lib/auth/auth-client";
 
 export type FormType = "SIGN_IN" | "SIGN_UP";
@@ -34,12 +34,26 @@ const AuthForm = ({ type }: { type: FormType }) => {
 
   const router = useRouter();
 
-  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   useEffect(() => {
-    authClient.oneTap();
-  }, []);
+    authClient.oneTap(
+      {
+        onPromptNotification(notification) {
+          console.warn(
+            "Prompt was dismissed or skipped. Consider displaying an alternative sign-in option.",
+            notification,
+          );
+        },
+      },
+      {
+        onSuccess: () => {
+          router.push("/dashboard");
+        },
+      },
+    );
+  }, [router]);
 
   useEffect(() => {
     if (
@@ -67,8 +81,6 @@ const AuthForm = ({ type }: { type: FormType }) => {
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    setIsLoading(true);
-
     if (isSignUp) {
       await authClient.signUp.email(
         {
@@ -79,15 +91,13 @@ const AuthForm = ({ type }: { type: FormType }) => {
         {
           onSuccess: () => {
             form.reset();
-            showSuccessToast({
-              description:
-                "Check your email for a confirmation link. If you don't receive an email, please check your spam folder.",
-            });
+            showToast(
+              "success",
+              "Check your email for a confirmation link. If you don't receive an email, please check your spam folder.",
+            );
           },
           onError: (ctx) => {
-            showErrorToast({
-              description: ctx.error.message,
-            });
+            showToast("error", ctx.error.message);
           },
         },
       );
@@ -97,83 +107,57 @@ const AuthForm = ({ type }: { type: FormType }) => {
           email: values.email,
           password: values.password,
           callbackURL: "/dashboard",
+          rememberMe,
         },
         {
           onError: (ctx) => {
-            showErrorToast({
-              description: ctx.error.message,
-            });
+            showToast("error", ctx.error.message);
           },
         },
       );
     }
-
-    setIsLoading(false);
   };
 
-  const handleSignInWithGoogle = async () => {
-    setIsLoading(true);
-    await authClient.signIn.social(
-      {
-        provider: "google",
-        callbackURL: "/dashboard",
-      },
-      {
-        onError: (ctx) => {
-          showErrorToast({
-            title: "Google Sign-In Failed",
-            description: ctx.error.message,
-          });
-        },
-      },
-    );
-    setIsLoading(false);
-  };
-
-  const handleSignInWithGithub = async () => {
-    setIsLoading(true);
-    await authClient.signIn.social(
-      {
-        provider: "github",
-        callbackURL: "/dashboard",
-      },
-      {
-        onError: (ctx) => {
-          showErrorToast({
-            title: "GitHub Sign-In Failed",
-            description: ctx.error.message,
-          });
-        },
-      },
-    );
-    setIsLoading(false);
-  };
-
-  const handleSignInWithPasskey = async () => {
-    setIsLoading(true);
-    await authClient.signIn.passkey({
-      fetchOptions: {
-        onSuccess() {
-          router.push("/dashboard");
-        },
-        onError(ctx) {
-          showErrorToast({
-            title: "Passkey Sign-In Failed",
-            description: ctx.error.message,
-          });
-        },
-      },
-    });
-    setIsLoading(false);
+  const handleSocialSignIn = async (
+    provider: "google" | "github" | "passkey",
+  ) => {
+    try {
+      if (provider === "passkey") {
+        await authClient.signIn.passkey({
+          fetchOptions: {
+            onSuccess() {
+              router.push("/dashboard");
+            },
+            onError(ctx) {
+              showToast("error", ctx.error.message);
+            },
+          },
+        });
+      } else {
+        await authClient.signIn.social(
+          {
+            provider,
+            callbackURL: "/dashboard",
+          },
+          {
+            onError: (ctx) => {
+              showToast("error", ctx.error.message);
+            },
+          },
+        );
+      }
+    } finally {
+    }
   };
 
   return (
-    <Card className="mx-auto w-full max-w-md">
-      <CardHeader>
-        <CardTitle className="text-center text-2xl font-bold">
+    <Card className="card-container">
+      <CardHeader className="card-header">
+        <CardTitle>
           {isSignUp ? "Create an Account" : "Welcome Back!"}
         </CardTitle>
       </CardHeader>
+
       <CardContent>
         <Form {...form}>
           <form
@@ -195,6 +179,8 @@ const AuthForm = ({ type }: { type: FormType }) => {
                         placeholder="Enter your name"
                         {...field}
                         type="text"
+                        autoComplete="name webauthn"
+                        disabled={form.formState.isSubmitting}
                       />
                     </FormControl>
                     <FormMessage />
@@ -202,6 +188,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
                 )}
               />
             )}
+
             <FormField
               control={form.control}
               name="email"
@@ -213,12 +200,15 @@ const AuthForm = ({ type }: { type: FormType }) => {
                       placeholder="Enter your email"
                       {...field}
                       type="email"
+                      autoComplete="email"
+                      disabled={form.formState.isSubmitting}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="password"
@@ -232,6 +222,12 @@ const AuthForm = ({ type }: { type: FormType }) => {
                         type={showPassword ? "text" : "password"}
                         className="pr-10"
                         placeholder="Enter your password"
+                        autoComplete={
+                          isSignUp
+                            ? "new-password webauthn"
+                            : "current-password webauthn"
+                        }
+                        disabled={form.formState.isSubmitting}
                       />
                       <Button
                         type="button"
@@ -241,9 +237,9 @@ const AuthForm = ({ type }: { type: FormType }) => {
                         onClick={() => setShowPassword((prev) => !prev)}
                       >
                         {showPassword ? (
-                          <EyeIcon className="h-4 w-4" aria-hidden="true" />
+                          <EyeIcon className="size-4" aria-hidden="true" />
                         ) : (
-                          <EyeOffIcon className="h-4 w-4" aria-hidden="true" />
+                          <EyeOffIcon className="size-4" aria-hidden="true" />
                         )}
                       </Button>
                     </div>
@@ -257,10 +253,10 @@ const AuthForm = ({ type }: { type: FormType }) => {
               <div className="flex items-center">
                 <div className="flex items-center gap-2">
                   <Checkbox
-                    id="remember"
                     onClick={() => {
-                      // setRememberMe(!rememberMe);
+                      setRememberMe(!rememberMe);
                     }}
+                    checked={rememberMe}
                   />
 
                   <FormLabel htmlFor="remember">Remember me</FormLabel>
@@ -289,6 +285,8 @@ const AuthForm = ({ type }: { type: FormType }) => {
                             type={showPassword ? "text" : "password"}
                             className="pr-10"
                             placeholder="Confirm your password"
+                            autoComplete="new-password"
+                            disabled={form.formState.isSubmitting}
                           />
                           <Button
                             type="button"
@@ -298,10 +296,10 @@ const AuthForm = ({ type }: { type: FormType }) => {
                             onClick={() => setShowPassword((prev) => !prev)}
                           >
                             {showPassword ? (
-                              <EyeIcon className="h-4 w-4" aria-hidden="true" />
+                              <EyeIcon className="size-4" aria-hidden="true" />
                             ) : (
                               <EyeOffIcon
-                                className="h-4 w-4"
+                                className="size-4"
                                 aria-hidden="true"
                               />
                             )}
@@ -352,40 +350,41 @@ const AuthForm = ({ type }: { type: FormType }) => {
               </>
             )}
 
-            <LoadingButton isLoading={isLoading} className="w-full">
+            <LoadingButton
+              isLoading={form.formState.isSubmitting}
+              className="w-full"
+            >
               {isSignUp ? "Sign Up" : "Sign In"}
             </LoadingButton>
           </form>
         </Form>
 
-        <div className="relative mb-2 mt-2">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-secondary-foreground"></div>
-          </div>
-          <div className="relative flex justify-center text-xs">
-            <span className="bg-background px-2 text-muted-foreground">OR</span>
-          </div>
+        <div className="relative mb-2 mt-2 text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
+          <span className="relative z-10 bg-background px-2 text-muted-foreground">
+            Or continue with
+          </span>
         </div>
 
+        {/* Socials */}
         <section className="space-y-2">
-          <LoadingButton
-            isLoading={isLoading}
-            onClick={handleSignInWithGoogle}
+          <Button
+            onClick={() => handleSocialSignIn("google")}
             className="w-full border-secondary-foreground"
             type="button"
             variant="outline"
           >
-            <img
+            <Image
               src="google-logo.svg"
               alt="Google Logo"
-              className="mr-2 h-4 w-4"
+              className="mr-2"
+              width={16}
+              height={16}
             />
             {isSignUp ? "Sign Up with Google" : "Sign In with Google"}
-          </LoadingButton>
+          </Button>
 
-          <LoadingButton
-            isLoading={isLoading}
-            onClick={handleSignInWithGithub}
+          <Button
+            onClick={() => handleSocialSignIn("github")}
             className="w-full border-secondary-foreground"
             type="button"
             variant="outline"
@@ -406,21 +405,20 @@ const AuthForm = ({ type }: { type: FormType }) => {
               ></path>
             </svg>
             {isSignUp ? "Sign Up with Github" : "Sign In with Github"}
-          </LoadingButton>
+          </Button>
 
-          <LoadingButton
-            isLoading={isLoading}
+          <Button
             className="w-full border-secondary-foreground"
-            onClick={handleSignInWithPasskey}
+            onClick={() => handleSocialSignIn("passkey")}
             type="button"
             variant="outline"
           >
-            <KeyRound className="mr-2 h-4 w-4" />
+            <KeyRound className="mr-2 size-4" />
             {isSignUp ? "Sign Up with Passkey" : "Sign In with Passkey"}
-          </LoadingButton>
+          </Button>
         </section>
 
-        <span className="mt-4 text-center text-sm">
+        <p className="mt-4 text-center text-sm">
           {isSignUp ? "Already have an account?" : "Don't have an account?"}
           <Link
             href={isSignUp ? "/sign-in" : "/sign-up"}
@@ -428,7 +426,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
           >
             {isSignUp ? "Sign In" : "Sign Up"}
           </Link>
-        </span>
+        </p>
       </CardContent>
     </Card>
   );

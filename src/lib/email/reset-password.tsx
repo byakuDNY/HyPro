@@ -13,53 +13,87 @@ import {
   Text,
 } from "@react-email/components";
 
-interface BetterAuthResetPasswordEmailProps {
+interface ResetPasswordEmailProps {
   username?: string;
   resetLink?: string;
 }
 
-export const ResetPasswordEmail = ({
+const ResetPasswordEmail = ({
   username,
   resetLink,
-}: BetterAuthResetPasswordEmailProps) => {
-  const previewText = `Reset your BetterAuth password`;
+}: ResetPasswordEmailProps) => {
+  const previewText = `Reset your Hypro password`;
+
   return (
     <Html>
       <Head />
       <Preview>{previewText}</Preview>
       <Tailwind>
-        <Body className="mx-auto my-auto bg-white px-2 font-sans">
-          <Container className="mx-auto my-[40px] max-w-[465px] rounded border border-solid border-[#eaeaea] p-[20px]">
-            <Heading className="mx-0 my-[30px] p-0 text-center text-[24px] font-normal text-black">
-              Reset your <strong>Better Auth</strong> password
-            </Heading>
-            <Text className="text-[14px] leading-[24px] text-black">
-              Hello {username},
-            </Text>
-            <Text className="text-[14px] leading-[24px] text-black">
-              We received a request to reset your password for your Better Auth
-              account. If you didn't make this request, you can safely ignore
-              this email.
-            </Text>
-            <Section className="mb-[32px] mt-[32px] text-center">
-              <Button
-                className="rounded bg-[#000000] px-5 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                href={resetLink}
-              >
-                Reset Password
-              </Button>
+        <Body className="bg-[#fafafa] font-sans">
+          <Container className="mx-auto my-8 max-w-[500px]">
+            {/* Header with Logo */}
+            <Section className="rounded-t-[0.5rem] bg-white px-8 pt-8 text-center">
+              <Section className="mx-auto text-center">
+                <Text className="m-0 text-xl font-bold">
+                  <span className="text-[#e11d48]">Hy</span>Pro
+                </Text>
+              </Section>
             </Section>
-            <Text className="text-[14px] leading-[24px] text-black">
-              Or copy and paste this URL into your browser:{" "}
-              <Link href={resetLink} className="text-blue-600 no-underline">
-                {resetLink}
-              </Link>
-            </Text>
-            <Hr className="mx-0 my-[26px] w-full border border-solid border-[#eaeaea]" />
-            <Text className="text-[12px] leading-[24px] text-[#666666]">
-              If you didn't request a password reset, please ignore this email
-              or contact support if you have concerns.
-            </Text>
+
+            {/* Main Content */}
+            <Section className="rounded-b-[0.5rem] bg-white px-8 pb-8">
+              <Heading className="mb-6 mt-4 text-center text-2xl font-bold text-[#0c0a09]">
+                Reset your password
+              </Heading>
+
+              <Text className="mb-4 text-base text-[#262626]">
+                Hello {username},
+              </Text>
+
+              <Text className="mb-6 text-base text-[#262626]">
+                We received a request to reset your password for your Hypro
+                account. Use the button below to set up a new password. If you
+                didn&apos;t make this request, you can safely ignore this email.
+              </Text>
+
+              {/* CTA Button */}
+              <Section className="mb-8 text-center">
+                <Button
+                  className="rounded-[0.5rem] bg-[#e11d48] px-6 py-3 text-center text-base font-medium text-white no-underline"
+                  href={resetLink}
+                >
+                  Reset Password
+                </Button>
+              </Section>
+
+              <Text className="mb-6 text-sm text-[#737373]">
+                Or copy and paste this URL into your browser:{" "}
+                <Link href={resetLink} className="text-[#e11d48] no-underline">
+                  {resetLink}
+                </Link>
+              </Text>
+
+              <Hr className="mb-6 border-[#e6e6e6]" />
+
+              <Text className="text-xs text-[#a3a3a3]">
+                If you didn&apos;t request a password reset, please ignore this
+                email or contact our support team if you have any concerns about
+                your account security.
+              </Text>
+            </Section>
+
+            {/* Footer */}
+            <Section className="mt-4 text-center">
+              <Text className="text-xs text-[#a3a3a3]">
+                {`© 2025${new Date().getFullYear() > 2025 ? `-${new Date().getFullYear()}` : ""} Hypro. All rights reserved.`}
+              </Text>
+              {/* <Text className="text-xs text-[#a3a3a3]">
+                123 Startup Way, San Francisco, CA 94107
+              </Text> */}
+              <Text className="text-xs text-[#a3a3a3]">
+                This is an automated email, please do not reply.
+              </Text>
+            </Section>
           </Container>
         </Body>
       </Tailwind>
@@ -67,9 +101,4 @@ export const ResetPasswordEmail = ({
   );
 };
 
-export function reactResetPasswordEmail(
-  props: BetterAuthResetPasswordEmailProps,
-) {
-  console.log(props);
-  return <ResetPasswordEmail {...props} />;
-}
+export default ResetPasswordEmail;

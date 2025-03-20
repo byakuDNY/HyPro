@@ -25,13 +25,6 @@ const Toolbar = <TData,>({ table }: ToolbarProps<TData>) => {
           }
           className="h-8 w-[150px] lg:w-[250px]"
         />
-        {/* {table.getColumn("status") && (
-          <FacetedFilter
-            column={table.getColumn("status")}
-            title="Status"
-            options={PROJECT_STATUSES}
-          />
-        )} */}
         {isFiltered && (
           <Button
             variant="ghost"

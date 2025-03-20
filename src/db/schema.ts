@@ -52,7 +52,7 @@ export const clients = pgTable(
       onDelete: "cascade",
     }),
   },
-  (t) => [index().on(t.userId), index().on(t.organizationId)],
+  (t) => [index().on(t.id), index().on(t.userId), index().on(t.organizationId)],
 );
 
 export const projects = pgTable("projects", {
@@ -133,7 +133,7 @@ export const sessions = pgTable("sessions", {
   ipAddress: text(),
   userAgent: text(),
   userId: text()
-    .references(() => users.id)
+    .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
   activeOrganizationId: text(),
 });
@@ -143,7 +143,7 @@ export const accounts = pgTable("accounts", {
   accountId: text().notNull(),
   providerId: text().notNull(),
   userId: text()
-    .references(() => users.id)
+    .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
   accessToken: text(),
   refreshToken: text(),
@@ -171,7 +171,7 @@ export const passkeys = pgTable("passkeys", {
   publicKey: text().notNull(),
   userId: text()
     .notNull()
-    .references(() => users.id),
+    .references(() => users.id, { onDelete: "cascade" }),
   credentialID: text().notNull(),
   counter: integer().notNull(),
   deviceType: text().notNull(),
@@ -183,7 +183,7 @@ export const passkeys = pgTable("passkeys", {
 export const organizations = pgTable("organization", {
   id: text().primaryKey(),
   name: text().notNull(),
-  slug: text().unique(),
+  slug: text().notNull(),
   logo: text(),
   createdAt: timestamp().notNull(),
   metadata: text(),
@@ -193,7 +193,7 @@ export const members = pgTable("member", {
   id: text().primaryKey(),
   organizationId: text()
     .notNull()
-    .references(() => organizations.id),
+    .references(() => organizations.id, { onDelete: "cascade" }),
   userId: text()
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
@@ -205,12 +205,19 @@ export const invitations = pgTable("invitation", {
   id: text().primaryKey(),
   organizationId: text()
     .notNull()
-    .references(() => organizations.id),
+    .references(() => organizations.id, { onDelete: "cascade" }),
   email: text().notNull(),
   role: text(),
   status: text().notNull(),
   expiresAt: timestamp().notNull(),
   inviterId: text()
     .notNull()
-    .references(() => users.id),
+    .references(() => users.id, { onDelete: "cascade" }),
 });
+
+// export const rateLimits = pgTable("rate_limits", {
+//   id: text().primaryKey(),
+//   key: text(),
+//   count: integer(),
+//   lastRequest: bigint({ mode: "number" }),
+// });

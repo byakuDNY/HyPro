@@ -6,6 +6,14 @@ export const getNameSchema = () =>
     .min(2, { message: "Name must be at least 2 characters long" })
     .max(50, { message: "Name must be less than 50 characters long" });
 
+export const getSlugSchema = () =>
+  z
+    .string()
+    .min(2, { message: "Slug must be at least 2 characters long" })
+    .max(50, { message: "Slug must be less than 50 characters long" })
+    .toLowerCase()
+    .trim();
+
 export const getEmailSchema = () =>
   z.string().email({ message: "Please enter a valid email address" });
 

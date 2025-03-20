@@ -5,10 +5,7 @@
 [] Add dashboard navbar
 [] Style profile page
 [] create merketing page
-[] check emails templated
-[] loading ui
 [] check account linking behavior
-[] fix every error
 [] style the app
 [] config cache, revalidation, and static generation
 
@@ -19,3 +16,4 @@
 [] add payments
 [] add involce module
 [] add image upload
+[] fix passkey and google bugs

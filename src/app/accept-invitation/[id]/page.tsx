@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 import { CheckIcon, XIcon } from "lucide-react";
 
+import LoadingUi from "@/components/loading-ui";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -16,12 +17,13 @@ import {
 } from "@/components/ui/card";
 import { authClient } from "@/lib/auth/auth-client";
 
-import { InvitationError } from "./invitation-error";
+import InvitationError from "./invitation-error";
 
-export default function InvitationPage() {
+const InvitationPage = () => {
   const params = useParams<{
     id: string;
   }>();
+
   const router = useRouter();
   const [invitationStatus, setInvitationStatus] = useState<
     "pending" | "accepted" | "rejected"
@@ -37,7 +39,7 @@ export default function InvitationPage() {
           setError(res.error.message || "An error occurred");
         } else {
           setInvitationStatus("accepted");
-          router.push(`/dashboard`);
+          router.push("/organizations");
         }
       });
   };
@@ -85,32 +87,33 @@ export default function InvitationPage() {
           setInvitation(res.data);
         }
       });
-  }, []);
+  }, [params.id]);
 
   return (
     <div className="flex min-h-[80vh] items-center justify-center">
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-white [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)] dark:bg-black"></div>
       {invitation ? (
-        <Card className="w-full max-w-md">
-          <CardHeader>
+        <Card className="card-container">
+          <CardHeader className="card-header">
             <CardTitle>Organization Invitation</CardTitle>
             <CardDescription>
-              You've been invited to join an organization
+              You&apos;ve been invited to join an organization
             </CardDescription>
           </CardHeader>
+
           <CardContent>
             {invitationStatus === "pending" && (
               <div className="space-y-4">
-                <span>
+                <p>
                   <strong>{invitation?.inviterEmail}</strong> has invited you to
                   join <strong>{invitation?.organizationName}</strong>.
-                </span>
-                <span>
+                </p>
+                <p>
                   This invitation was sent to{" "}
                   <strong>{invitation?.email}</strong>.
-                </span>
+                </p>
               </div>
             )}
+
             {invitationStatus === "accepted" && (
               <div className="space-y-4">
                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
@@ -120,11 +123,12 @@ export default function InvitationPage() {
                   Welcome to {invitation?.organizationName}!
                 </h2>
                 <p className="text-center">
-                  You've successfully joined the organization. We're excited to
-                  have you on board!
+                  You&apos;ve successfully joined the organization. We&apos;re
+                  excited to have you on board!
                 </p>
               </div>
             )}
+
             {invitationStatus === "rejected" && (
               <div className="space-y-4">
                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
@@ -140,9 +144,10 @@ export default function InvitationPage() {
               </div>
             )}
           </CardContent>
+
           {invitationStatus === "pending" && (
             <CardFooter className="flex justify-between">
-              <Button variant="outline" onClick={handleReject}>
+              <Button variant="secondary" onClick={handleReject}>
                 Decline
               </Button>
               <Button onClick={handleAccept}>Accept Invitation</Button>
@@ -152,8 +157,10 @@ export default function InvitationPage() {
       ) : error ? (
         <InvitationError />
       ) : (
-        <div>Loading...</div>
+        <LoadingUi />
       )}
     </div>
   );
-}
+};
+
+export default InvitationPage;

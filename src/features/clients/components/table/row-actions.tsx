@@ -19,8 +19,8 @@ const RowActions = <TData,>({ row }: RowActionsProps<TData>) => {
   return (
     <div className="flex items-center space-x-2">
       <Button variant="ghost" size="sm" className="m-0 p-0">
-        <Link href="/clients/form/[id]" as={`/clients/form/${id}`} prefetch>
-          <Edit className="h-4 w-4" />
+        <Link href={`/clients/form/${id}`} prefetch>
+          <Edit className="size-4" />
         </Link>
       </Button>
       <Button
@@ -28,7 +28,7 @@ const RowActions = <TData,>({ row }: RowActionsProps<TData>) => {
         size="sm"
         className="m-0 p-0 text-destructive hover:text-destructive"
       >
-        <Trash2 className="h-4 w-4" />
+        <Trash2 className="size-4" />
       </Button>
       {/* <DropdownMenu>
       <DropdownMenuTrigger asChild>

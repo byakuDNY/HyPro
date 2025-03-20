@@ -1,19 +1,24 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { AlertCircle, EyeIcon, EyeOffIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import LoadingButton from "@/components/loading-button";
+// Component with useSearchParams hook
+import LoadingUi from "@/components/loading-ui";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -27,15 +32,23 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { resetPasswordSchema } from "@/features/auth/zod-schema";
-import { toast } from "@/hooks/use-toast";
+import { showToast } from "@/hooks/use-custom-toast";
 import { authClient } from "@/lib/auth/auth-client";
 
-function ResetPasswordContent() {
+// Main wrapper component with Suspense
+const ResetPassword = () => {
+  return (
+    <Suspense fallback={<LoadingUi />}>
+      <ResetPasswordForm />
+    </Suspense>
+  );
+};
+
+const ResetPasswordForm = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof resetPasswordSchema>>({
     resolver: zodResolver(resetPasswordSchema),
@@ -45,159 +58,156 @@ function ResetPasswordContent() {
     },
   });
 
-  const onSubmit = async (data: z.infer<typeof resetPasswordSchema>) => {
-    setIsLoading(true);
+  // Validating the token and error search parameters
+  const error = searchParams.get("error");
+  const token = searchParams.get("token");
 
+  const onSubmit = async (values: z.infer<typeof resetPasswordSchema>) => {
     await authClient.resetPassword(
       {
-        newPassword: data.password,
+        newPassword: values.password,
         token: token!,
       },
       {
         onSuccess: () => {
-          toast({
-            title: "Password Resettled Successfully",
-          });
           router.push("/sign-in");
+          showToast("success", "Password Reset Successfully");
         },
         onError: (ctx) => {
-          toast({
-            title: "Error",
-            description: ctx.error.message,
-            variant: "destructive",
-          });
+          showToast("error", ctx.error.message);
         },
       },
     );
-
-    setIsLoading(false);
   };
 
-  const error = searchParams.get("error");
-  const token = searchParams.get("token");
   if (error === "INVALID_TOKEN" || !token) {
     return (
-      <Card className="mx-auto w-full max-w-md">
+      <Card className="card-container">
         <CardHeader>
-          <CardTitle className="text-center text-2xl font-bold">
-            Invalid Reset Link
-          </CardTitle>
+          <div className="flex items-center space-x-2">
+            <AlertCircle className="h-6 w-6 text-destructive" />
+            <CardTitle className="text-destructive">
+              Invalid Reset Link
+            </CardTitle>
+          </div>
+          <CardDescription>
+            This password reset link is invalid or has expired.
+          </CardDescription>
         </CardHeader>
-        <CardContent className="text-center text-sm font-normal text-muted-foreground">
-          This password reset link is invalid or has expired.
+
+        <CardContent>
+          <p className="text-muted-foreground">
+            Please check your email for a reset link or try again.
+          </p>
         </CardContent>
+
+        <CardFooter>
+          <Link href="/sign-up" className="w-full" prefetch>
+            <Button variant="outline" className="w-full">
+              Go to sign up
+            </Button>
+          </Link>
+        </CardFooter>
       </Card>
     );
   }
 
   return (
-    <div className="flex grow items-center justify-center p-4">
-      <Card className="mx-auto w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-center text-2xl font-bold">
-            Reset Password
-          </CardTitle>
-          <CardDescription className="text-center text-sm font-normal text-muted-foreground">
-            Enter new password and confirm it to reset your password
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>New Password</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          {...field}
-                          type={showPassword ? "text" : "password"}
-                          className="pr-10"
-                          placeholder="Enter your new password"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-0 top-0 h-full px-3 py-2"
-                          onClick={() => setShowPassword((prev) => !prev)}
-                        >
-                          {showPassword ? (
-                            <EyeIcon className="h-4 w-4" aria-hidden="true" />
-                          ) : (
-                            <EyeOffIcon
-                              className="h-4 w-4"
-                              aria-hidden="true"
-                            />
-                          )}
-                        </Button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+    <Card className="card-container">
+      <CardHeader className="card-header">
+        <CardTitle>Reset Password</CardTitle>
+        <CardDescription className="card-description">
+          Enter new password and confirm it to reset your password
+        </CardDescription>
+      </CardHeader>
 
-              <FormField
-                control={form.control}
-                name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirm Password</FormLabel>
-                    <FormControl>
-                      {/*<Input*/}
-                      {/*  type="password"*/}
-                      {/*  placeholder="Confirm your new password"*/}
-                      {/*  {...field}*/}
-                      {/*/>*/}
-                      <div className="relative">
-                        <Input
-                          {...field}
-                          type={showPassword ? "text" : "password"}
-                          className="pr-10"
-                          placeholder="Confirm your new password"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-0 top-0 h-full px-3 py-2"
-                          onClick={() => setShowPassword((prev) => !prev)}
-                        >
-                          {showPassword ? (
-                            <EyeIcon className="h-4 w-4" aria-hidden="true" />
-                          ) : (
-                            <EyeOffIcon
-                              className="h-4 w-4"
-                              aria-hidden="true"
-                            />
-                          )}
-                        </Button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* Your form fields remain the same */}
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>New Password</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input
+                        {...field}
+                        type={showPassword ? "text" : "password"}
+                        className="pr-10"
+                        placeholder="Enter your new password"
+                        autoComplete="new-password"
+                        disabled={form.formState.isSubmitting}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                      >
+                        {showPassword ? (
+                          <EyeIcon className="h-4 w-4" aria-hidden="true" />
+                        ) : (
+                          <EyeOffIcon className="h-4 w-4" aria-hidden="true" />
+                        )}
+                      </Button>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              <LoadingButton isLoading={isLoading} className="w-full">
-                Reset Password
-              </LoadingButton>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-    </div>
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Confirm Password</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input
+                        {...field}
+                        type={showPassword ? "text" : "password"}
+                        className="pr-10"
+                        placeholder="Confirm your new password"
+                        autoComplete="new-password"
+                        disabled={form.formState.isSubmitting}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                      >
+                        {showPassword ? (
+                          <EyeIcon className="h-4 w-4" aria-hidden="true" />
+                        ) : (
+                          <EyeOffIcon className="h-4 w-4" aria-hidden="true" />
+                        )}
+                      </Button>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <LoadingButton
+              isLoading={form.formState.isSubmitting}
+              className="w-full"
+            >
+              Reset Password
+            </LoadingButton>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
-}
+};
 
-export default function ResetPassword() {
-  return (
-    <Suspense>
-      <ResetPasswordContent />
-    </Suspense>
-  );
-}
+export default ResetPassword;

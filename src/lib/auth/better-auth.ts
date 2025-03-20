@@ -7,7 +7,7 @@ import { passkey } from "better-auth/plugins/passkey";
 import db from "@/db";
 import resend from "@/lib/email/resend";
 
-import { reactInvitationEmail } from "../email/invitation";
+import InviteUserEmail from "../email/invitation";
 import envConfig from "../env-config";
 
 const auth = betterAuth({
@@ -111,8 +111,6 @@ const auth = betterAuth({
     },
   },
   rateLimit: {
-    storage: "database",
-    modelName: "rate_limits",
     window: 10,
     max: 20,
     customRules: {
@@ -127,7 +125,7 @@ const auth = betterAuth({
           from: envConfig().email.sender,
           to: data.email,
           subject: "You've been invited to join an organization",
-          react: reactInvitationEmail({
+          react: InviteUserEmail({
             username: data.email,
             invitedByUsername: data.inviter.user.name,
             invitedByEmail: data.inviter.user.email,

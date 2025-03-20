@@ -14,7 +14,7 @@ export const authFormSchema = (formType: FormType) => {
     password: getPasswordSchema(),
   });
 
-  return formType === "sign-up"
+  return formType === "SIGN_UP"
     ? baseSchema
         .extend({
           name: getNameSchema(),

@@ -1,4 +1,3 @@
-import { headers } from "next/headers";
 import Link from "next/link";
 
 import { ChevronsUpDown, LogOut, Settings } from "lucide-react";
@@ -19,20 +18,21 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import SignOutClient from "@/features/auth/components/sign-out-client";
-import auth from "@/lib/auth/better-auth";
-import { Session } from "@/lib/auth/types";
 import { getInitials } from "@/lib/utils";
 
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
-const SidebarFooterComponent = async () => {
-  const session = (await auth.api.getSession({
-    headers: await headers(),
-  })) as Session | null;
+const SidebarFooterComponent = () => {
+  // const session = (await auth.api.getSession({
+  //   headers: await headers(),
+  // })) as Session | null;
 
-  const { name = "", email, image } = session?.user || {};
-  const imageSrc = image ?? undefined;
+  // const { name = "", email, image } = session?.user || {};
+  // const imageSrc = image ?? undefined;
 
+  const name = "John Doe";
+  const email = "john@example.com";
+  const imageSrc = "";
   return (
     <SidebarFooter>
       <SidebarMenu>

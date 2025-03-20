@@ -1,7 +1,7 @@
-import ClientFormClient from "@/features/clients/components/client-form";
+import ClientForm from "@/features/clients/components/client-form";
 
 const CreateClient = () => {
-  return <ClientFormClient />;
+  return <ClientForm />;
 };
 
 export default CreateClient;

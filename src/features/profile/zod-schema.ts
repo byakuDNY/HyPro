@@ -20,3 +20,7 @@ export const changePasswordSchema = object({
   currentPassword: getPasswordSchema(),
   newPassword: getPasswordSchema(),
 });
+
+export const passkeySchema = object({
+  name: getNameSchema(),
+});

@@ -13,6 +13,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -27,11 +28,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { changePasswordSchema } from "@/features/profile/zod-schema";
-import { toast } from "@/hooks/use-toast";
+import { showToast } from "@/hooks/use-custom-toast";
 import { authClient } from "@/lib/auth/auth-client";
 
 const ChangePassword = () => {
-  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<z.infer<typeof changePasswordSchema>>({
@@ -43,7 +43,6 @@ const ChangePassword = () => {
   });
 
   const onSubmit = async (values: z.infer<typeof changePasswordSchema>) => {
-    setIsLoading(true);
     await authClient.changePassword(
       {
         currentPassword: values.currentPassword,
@@ -52,20 +51,16 @@ const ChangePassword = () => {
       },
       {
         onSuccess: () => {
-          toast({
-            title: "Password successfully changed",
-          });
+          showToast("success", "Password successfully changed");
         },
         onError: (ctx) => {
-          toast({
-            title: "Error",
-            description: ctx.error.message,
-            variant: "destructive",
-          });
+          showToast("error", ctx.error.message);
+        },
+        onRequest: () => {
+          showToast("loading", "Changing password...");
         },
       },
     );
-    setIsLoading(false);
   };
 
   return (
@@ -86,6 +81,7 @@ const ChangePassword = () => {
           <span className="text-sm text-muted-foreground">Change Password</span>
         </Button>
       </DialogTrigger>
+
       <DialogContent className="w-11/12 sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Change Password</DialogTitle>
@@ -106,6 +102,7 @@ const ChangePassword = () => {
                         type={showPassword ? "text" : "password"}
                         className="pr-10"
                         placeholder="Enter your current password"
+                        disabled={form.formState.isSubmitting}
                       />
                       <Button
                         type="button"
@@ -115,9 +112,9 @@ const ChangePassword = () => {
                         onClick={() => setShowPassword((prev) => !prev)}
                       >
                         {showPassword ? (
-                          <EyeIcon className="h-4 w-4" aria-hidden="true" />
+                          <EyeIcon className="size-4" aria-hidden="true" />
                         ) : (
-                          <EyeOffIcon className="h-4 w-4" aria-hidden="true" />
+                          <EyeOffIcon className="size-4" aria-hidden="true" />
                         )}
                       </Button>
                     </div>
@@ -140,6 +137,7 @@ const ChangePassword = () => {
                         type={showPassword ? "text" : "password"}
                         className="pr-10"
                         placeholder="Enter your new password"
+                        disabled={form.formState.isSubmitting}
                       />
                       <Button
                         type="button"
@@ -149,9 +147,9 @@ const ChangePassword = () => {
                         onClick={() => setShowPassword((prev) => !prev)}
                       >
                         {showPassword ? (
-                          <EyeIcon className="h-4 w-4" aria-hidden="true" />
+                          <EyeIcon className="size-4" aria-hidden="true" />
                         ) : (
-                          <EyeOffIcon className="h-4 w-4" aria-hidden="true" />
+                          <EyeOffIcon className="size-4" aria-hidden="true" />
                         )}
                       </Button>
                     </div>
@@ -161,7 +159,15 @@ const ChangePassword = () => {
               )}
             />
 
-            <LoadingButton isLoading={isLoading}>Submit</LoadingButton>
+            <DialogFooter>
+              <LoadingButton
+                isLoading={form.formState.isSubmitting}
+                className="w-full"
+                type="submit"
+              >
+                Submit
+              </LoadingButton>
+            </DialogFooter>
           </form>
         </Form>
       </DialogContent>

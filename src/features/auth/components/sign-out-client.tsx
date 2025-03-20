@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import LoadingButton from "@/components/loading-button";
-import { toast } from "@/hooks/use-toast";
+import { showToast } from "@/hooks/use-custom-toast";
 import { authClient } from "@/lib/auth/auth-client";
 
 const SignOutClient = ({ unstyled = false }: { unstyled?: boolean }) => {
@@ -14,24 +14,20 @@ const SignOutClient = ({ unstyled = false }: { unstyled?: boolean }) => {
   const handleSignOut = async () => {
     setIsLoading(true);
 
-    try {
-      await authClient.signOut({
-        fetchOptions: {
-          onSuccess: () => {
-            router.push("/");
-            router.refresh();
-          },
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          router.push("/");
+          router.refresh();
         },
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+        onError: (ctx) => {
+          showToast("error", ctx.error.message);
+        },
+        onRequest: () => {
+          showToast("loading", "Signing out...");
+        },
+      },
+    });
   };
 
   return (

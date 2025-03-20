@@ -25,13 +25,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { type ClientInsertType } from "@/features/clients/types";
-import { showErrorToast } from "@/hooks/use-error-toast";
-import { showSuccessToast } from "@/hooks/use-success-toast";
+import { showToast } from "@/hooks/use-custom-toast";
 
 import { createClient, updateClient } from "../actions";
 import { clientInsertSchema } from "../zod-schema";
 
-const ClientFormClient = ({
+const ClientForm = ({
   id,
   isEditMode = false,
   name,
@@ -77,30 +76,24 @@ const ClientFormClient = ({
   });
 
   const onSubmit = async (values: ClientInsertType) => {
-    console.log(values);
-
     const { error } = isEditMode
       ? await updateClient(values)
       : await createClient(values);
 
     if (error) {
       setErrorMessage(error);
-      showErrorToast({
-        description: error,
-      });
+      showToast("error", error);
       return;
     }
 
-    showSuccessToast({
-      description: "Client created successfully",
-    });
+    showToast("success", "Client created successfully");
 
     form.reset();
     router.push("/clients");
   };
 
   return (
-    <Card className="mx-auto my-10 max-w-2xl space-y-8 bg-white px-6">
+    <Card className="card-container">
       <CardHeader>
         <CardTitle>Client Information</CardTitle>
         <CardDescription>
@@ -111,43 +104,48 @@ const ClientFormClient = ({
         <Form {...form}>
           <form
             onChange={() => {
-              console.log(form.getValues("id")); // Log form errors
               console.log(form.formState.errors);
             }}
             onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-4"
+            className="grid grid-cols-1 gap-6 md:grid-cols-2"
           >
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter client name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Enter client description"
-                      {...field}
-                      value={field.value || ""}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="space-y-4 md:col-span-2">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter client name"
+                        {...field}
+                        disabled={form.formState.isSubmitting}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Enter client description"
+                        {...field}
+                        value={field.value || ""}
+                        disabled={form.formState.isSubmitting}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}
@@ -156,7 +154,11 @@ const ClientFormClient = ({
                 <FormItem>
                   <FormLabel>Contact Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter client contact name" {...field} />
+                    <Input
+                      placeholder="Enter client contact name"
+                      {...field}
+                      disabled={form.formState.isSubmitting}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -173,6 +175,7 @@ const ClientFormClient = ({
                     <Input
                       placeholder="Enter client contact email"
                       {...field}
+                      disabled={form.formState.isSubmitting}
                     />
                   </FormControl>
                   <FormMessage />
@@ -190,6 +193,7 @@ const ClientFormClient = ({
                     <Input
                       placeholder="Enter client contact phone number"
                       {...field}
+                      disabled={form.formState.isSubmitting}
                     />
                   </FormControl>
                   <FormMessage />
@@ -209,6 +213,7 @@ const ClientFormClient = ({
                       {...field}
                       type="text"
                       value={field.value || ""}
+                      disabled={form.formState.isSubmitting}
                     />
                   </FormControl>
                   <FormMessage />
@@ -216,17 +221,18 @@ const ClientFormClient = ({
               )}
             />
 
-            <LoadingButton
-              type="submit"
-              className="w-full"
-              isLoading={form.formState.isSubmitting}
-            >
-              {isEditMode ? "Update" : "Create"}
-            </LoadingButton>
-
-            {errorMessage && (
-              <p className="text-center text-red-500">*{errorMessage}</p>
-            )}
+            <div className="space-y-4 md:col-span-2">
+              <LoadingButton
+                type="submit"
+                className="w-full"
+                isLoading={form.formState.isSubmitting}
+              >
+                {isEditMode ? "Update" : "Create"}
+              </LoadingButton>
+              {errorMessage && (
+                <p className="text-center text-red-500">*{errorMessage}</p>
+              )}
+            </div>
           </form>
         </Form>
       </CardContent>
@@ -234,4 +240,4 @@ const ClientFormClient = ({
   );
 };
 
-export default ClientFormClient;
+export default ClientForm;

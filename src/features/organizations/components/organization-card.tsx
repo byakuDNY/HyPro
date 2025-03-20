@@ -3,175 +3,289 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { ChevronDownIcon, Loader2, MailPlus } from "lucide-react";
+import { ChevronDown, Mail, Trash, Users } from "lucide-react";
 
+import LoadingButton from "@/components/loading-button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CopyButton from "@/components/ui/copy-button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { showErrorToast } from "@/hooks/use-error-toast";
-import { showLoadingToast } from "@/hooks/use-loading-toast";
-import { showSuccessToast } from "@/hooks/use-success-toast";
-import { toast } from "@/hooks/use-toast";
+import { showToast } from "@/hooks/use-custom-toast";
 import { authClient } from "@/lib/auth/auth-client";
-import { type ActiveOrganization, type Session } from "@/lib/auth/types";
+import {
+  type ActiveOrganization,
+  Invitation,
+  Member,
+  Organization,
+  type User,
+} from "@/lib/auth/types";
+import { getInitials } from "@/lib/utils";
 
 import CreateOrganizationDialog from "./create-organization.dialog";
+import InviteMemberDialog from "./invite-member-dialog";
 
-export function OrganizationCard({
-  session,
+const OrganizationCard = ({
+  user,
   activeOrganization,
+  listOrganizations: organizations,
 }: {
-  session: Session | null;
+  user: User;
   activeOrganization: ActiveOrganization | null;
-}) {
+  listOrganizations: Organization[] | null;
+}) => {
   const router = useRouter();
 
-  const organizations = authClient.useListOrganizations();
-  const [optimisticOrg, setOptimisticOrg] = useState<ActiveOrganization | null>(
+  const [isLoading, setIsLoading] = useState(false);
+  const [isRemoving, setIsRemoving] = useState<string[]>([]);
+  const [isRevoking, setIsRevoking] = useState<string[]>([]);
+  const [activeOrg, setActiveOrg] = useState<ActiveOrganization | null>(
     activeOrganization,
   );
-  const [isRevoking, setIsRevoking] = useState<string[]>([]);
 
-  const currentMember = optimisticOrg?.members.find(
-    (member) => member.userId === session?.user.id,
+  const currentMember = activeOrg?.members.find(
+    (member) => member.userId === user.id,
   );
+
+  const handleSetOrganization = (org: Organization | null) => {
+    setIsLoading(true);
+
+    if (org?.id === activeOrg?.id) {
+      return;
+    }
+
+    if (org === null) {
+      authClient.organization.setActive(
+        {
+          organizationId: null,
+        },
+        {
+          onSuccess: () => {
+            setActiveOrg(null);
+            showToast(
+              "success",
+              "Personal is now set as the active organization.",
+            );
+          },
+          onError: (ctx) => {
+            showToast("error", ctx.error.message);
+          },
+          onRequest: () => {
+            showToast("loading", "Setting active organization...");
+          },
+        },
+      );
+      return;
+    }
+
+    authClient.organization.setActive(
+      {
+        organizationId: org.id,
+      },
+      {
+        onSuccess: (ctx) => {
+          setActiveOrg(ctx.data);
+          showToast(
+            "success",
+            `${ctx.data.name} is now set as the active organization.`,
+          );
+        },
+        onError: (ctx) => {
+          showToast("error", ctx.error.message);
+        },
+        onRequest: () => {
+          showToast("loading", "Setting active organization...");
+        },
+      },
+    );
+
+    setIsLoading(false);
+  };
+
+  const handleRemoveMember = async (memberId: Member["id"]) => {
+    setIsRemoving((prev) => [...prev, memberId]);
+    await authClient.organization.removeMember(
+      {
+        memberIdOrEmail: memberId,
+      },
+      {
+        onSuccess: (ctx) => {
+          if (activeOrg) {
+            setActiveOrg({
+              ...activeOrg,
+              members: activeOrg.members.filter(
+                (member) => member.id !== memberId,
+              ),
+            });
+          }
+          showToast(
+            "success",
+            `${ctx.data.member.user.name} removed successfully`,
+          );
+        },
+        onError: (ctx) => {
+          showToast("error", ctx.error.message);
+        },
+        onRequest: () => {
+          showToast("loading", "Removing member...");
+        },
+      },
+    );
+    setIsRemoving((prev) => prev.filter((id) => id !== memberId));
+  };
+
+  const handleCancelInvitation = async (invitationId: Invitation["id"]) => {
+    setIsRevoking((prev) => [...prev, invitationId]);
+
+    await authClient.organization.cancelInvitation(
+      {
+        invitationId: invitationId,
+      },
+      {
+        onSuccess: (ctx) => {
+          if (activeOrg) {
+            setActiveOrg({
+              ...activeOrg,
+              invitations: activeOrg.invitations.filter(
+                (inv) => inv.id !== invitationId,
+              ),
+            });
+          }
+          showToast(
+            "success",
+            `${ctx.data.email} invitation revoked successfully`,
+          );
+        },
+        onError: (ctx) => {
+          showToast("error", ctx.error.message);
+        },
+        onRequest: () => {
+          showToast("loading", "Revoking invitation...");
+        },
+      },
+    );
+
+    setIsRevoking((prev) => prev.filter((id) => id !== invitationId));
+  };
+
+  const handleDeleteOrganization = async () => {
+    if (!activeOrg?.id) {
+      showToast("error", "You can't delete your personal workspace.");
+      return;
+    }
+
+    setIsLoading(true);
+    await authClient.organization.delete(
+      {
+        organizationId: activeOrg.id,
+      },
+      {
+        onSuccess: () => {
+          showToast("success", "Organization deleted successfully");
+          setActiveOrg(null);
+
+          // Update the organizations list
+          if (organizations) {
+            organizations.filter((org) => org.id !== activeOrg.id);
+            router.push("/organizations");
+          }
+        },
+        onError: (ctx) => {
+          showToast("error", ctx.error.message);
+        },
+        onRequest: () => {
+          showToast("loading", "Deleting organization...");
+        },
+      },
+    );
+
+    setIsLoading(false);
+  };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Organization</CardTitle>
-        <div className="flex justify-between">
+        <CardTitle>Organizations</CardTitle>
+      </CardHeader>
+
+      <CardContent className="grid grid-cols-1 gap-8">
+        {/* Organization Selector */}
+        <div className="flex items-start justify-between">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <div className="flex cursor-pointer items-center gap-1">
-                <span className="text-sm">
-                  <span className="font-bold"></span>{" "}
-                  {optimisticOrg?.name || "Personal"}
-                </span>
-
-                <ChevronDownIcon />
+              <div className="flex cursor-pointer items-center gap-4">
+                <Avatar className="hidden h-9 w-9 sm:flex">
+                  <AvatarImage
+                    src={activeOrg?.logo ?? undefined}
+                    alt="Organization Logo"
+                    className="object-cover"
+                  />
+                  <AvatarFallback>
+                    {getInitials(activeOrg?.name || "P")}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="grid gap-1">
+                  <p className="text-sm font-medium leading-none">
+                    {activeOrg?.name || "Personal"}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {activeOrg?.members.length || 1} members
+                  </p>
+                </div>
+                <ChevronDown className="h-4 w-4" />
               </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
               <DropdownMenuItem
                 className="py-1"
-                onClick={async () => {
-                  authClient.organization.setActive({
-                    organizationId: null,
-                  });
-                  setOptimisticOrg(null);
-                }}
+                onClick={() => handleSetOrganization(null)}
               >
+                <Avatar className="mr-2 size-5">
+                  <AvatarFallback>P</AvatarFallback>
+                </Avatar>
                 <span className="sm text-sm">Personal</span>
               </DropdownMenuItem>
-              {organizations.data?.map((org) => (
+
+              {organizations?.map((org) => (
                 <DropdownMenuItem
                   className="py-1"
                   key={org.id}
-                  onClick={async () => {
-                    if (org.id === optimisticOrg?.id) {
-                      return;
-                    }
-                    setOptimisticOrg({
-                      members: [],
-                      invitations: [],
-                      ...org,
-                    });
-                    await authClient.organization.setActive(
-                      {
-                        organizationId: org.id,
-                      },
-                      {
-                        onSuccess: (ctx) => {
-                          showSuccessToast({
-                            description: `${ctx.data.name} is now set as the active organization.`,
-                          });
-                          setOptimisticOrg(ctx.data);
-                          router.refresh();
-                        },
-                        onError: (ctx) => {
-                          showErrorToast({
-                            description: ctx.error.message,
-                          });
-                        },
-                        onRequest: () => {
-                          showLoadingToast({
-                            description: "Setting active organization...",
-                          });
-                        },
-                      },
-                    );
-                  }}
+                  onClick={() => handleSetOrganization(org)}
                 >
+                  <Avatar className="mr-2 size-5">
+                    <AvatarImage src={org.logo ?? undefined} alt={org.name} />
+                    <AvatarFallback>{getInitials(org.name)}</AvatarFallback>
+                  </Avatar>
                   <span className="sm text-sm">{org.name}</span>
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <div>
-            <CreateOrganizationDialog />
+          <div className="flex items-center gap-2">
+            <CreateOrganizationDialog setActiveOrg={setActiveOrg} />
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Avatar className="rounded-none">
-            <AvatarImage
-              className="h-full w-full rounded-none object-cover"
-              src={optimisticOrg?.logo || ""}
-            />
-            <AvatarFallback className="rounded-none">
-              {optimisticOrg?.name?.charAt(0) || "P"}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <span>{optimisticOrg?.name || "Personal"}</span>
-            <span className="text-xs text-muted-foreground">
-              {optimisticOrg?.members.length || 1} members
+
+        {/* Members Section */}
+        <div className="flex flex-wrap items-start justify-between gap-2 border-t py-4">
+          <div className="flex w-full flex-col gap-2">
+            <span className="flex items-center gap-2 text-sm">
+              <Users className="h-4 w-4" /> Members
             </span>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-col gap-8 md:flex-row">
-          <div className="flex flex-grow flex-col gap-2">
-            <span className="border-b-2 border-b-foreground/10 font-medium">
-              Members
-            </span>
-            <div className="flex flex-col gap-2">
-              {optimisticOrg?.members.map((member) => (
+            <div className="space-y-3">
+              {activeOrg?.members.map((member) => (
                 <div
                   key={member.id}
                   className="flex items-center justify-between"
                 >
                   <div className="flex items-center gap-2">
-                    <Avatar className="h-9 w-9 sm:flex">
+                    <Avatar className="h-8 w-8">
                       <AvatarImage
-                        src={member.user.image || ""}
+                        src={member.user.image ?? undefined}
                         className="object-cover"
                       />
                       <AvatarFallback>
@@ -179,229 +293,138 @@ export function OrganizationCard({
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <span className="text-sm">{member.user.name}</span>
-                      <span className="text-xs text-muted-foreground">
+                      <p className="text-sm">{member.user.name}</p>
+                      <p className="text-xs text-muted-foreground">
                         {member.role}
-                      </span>
+                      </p>
                     </div>
                   </div>
                   {member.role !== "owner" &&
                     (currentMember?.role === "owner" ||
                       currentMember?.role === "admin") && (
-                      <Button
+                      <LoadingButton
                         size="sm"
                         variant="destructive"
-                        onClick={() => {
-                          authClient.organization.removeMember({
-                            memberIdOrEmail: member.id,
-                          });
-                        }}
+                        onClick={() => handleRemoveMember(member.id)}
+                        isLoading={isRemoving.includes(member.id)}
                       >
                         {currentMember?.id === member.id ? "Leave" : "Remove"}
-                      </Button>
+                      </LoadingButton>
                     )}
                 </div>
               ))}
-              {!optimisticOrg?.id && (
-                <div>
-                  <div className="flex items-center gap-2">
-                    <Avatar>
-                      <AvatarImage src={session?.user.image || ""} />
-                      <AvatarFallback>
-                        {session?.user.name?.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <span className="text-sm">{session?.user.name}</span>
-                      <span className="text-xs text-muted-foreground">
-                        Owner
-                      </span>
-                    </div>
+
+              {!activeOrg?.id && (
+                <div className="flex items-center gap-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.image ?? undefined} />
+                    <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <span className="text-sm">{user.name}</span>
+                    <span className="block text-xs text-muted-foreground">
+                      Owner
+                    </span>
                   </div>
                 </div>
               )}
             </div>
           </div>
-          <div className="flex flex-grow flex-col gap-2">
-            <span className="border-b-2 border-b-foreground/10 font-medium">
-              Invites
-            </span>
-            <div className="flex flex-col gap-2">
-              {optimisticOrg?.invitations
-                .filter((invitation) => invitation.status === "pending")
-                .map((invitation) => (
-                  <div
-                    key={invitation.id}
-                    className="flex items-center justify-between"
-                  >
-                    <div>
-                      <span className="text-sm">{invitation.email}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {invitation.role}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        disabled={isRevoking.includes(invitation.id)}
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => {
-                          authClient.organization.cancelInvitation(
-                            {
-                              invitationId: invitation.id,
-                            },
-                            {
-                              onRequest: () => {
-                                setIsRevoking([...isRevoking, invitation.id]);
-                              },
-                              onSuccess: () => {
-                                console.log("Invitation revoked successfully");
-                                setIsRevoking(
-                                  isRevoking.filter(
-                                    (id) => id !== invitation.id,
-                                  ),
-                                );
-                                setOptimisticOrg({
-                                  ...optimisticOrg,
-                                  invitations:
-                                    optimisticOrg?.invitations.filter(
-                                      (inv) => inv.id !== invitation.id,
-                                    ),
-                                });
-                              },
-                              onError: (ctx) => {
-                                console.error(ctx.error.message);
-                                setIsRevoking(
-                                  isRevoking.filter(
-                                    (id) => id !== invitation.id,
-                                  ),
-                                );
-                              },
-                            },
-                          );
-                        }}
-                      >
-                        {isRevoking.includes(invitation.id) ? (
-                          <Loader2 className="animate-spin" size={16} />
-                        ) : (
-                          "Revoke"
-                        )}
-                      </Button>
+        </div>
+
+        {/* Invitations Section */}
+        <div className="flex flex-wrap items-start justify-between gap-2 border-t py-4">
+          <div className="flex w-full flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2 text-sm">
+                <Mail className="h-4 w-4" /> Invitations
+              </span>
+              <InviteMemberDialog
+                setActiveOrg={setActiveOrg}
+                activeOrg={activeOrg}
+              />
+            </div>
+            <div className="space-y-3">
+              {activeOrg?.invitations.filter(
+                (invitation) => invitation.status === "pending",
+              ).length ? (
+                activeOrg?.invitations
+                  .filter((invitation) => invitation.status === "pending")
+                  .map((invitation) => (
+                    <div
+                      key={invitation.id}
+                      className="flex items-center justify-between"
+                    >
                       <div>
+                        <p className="text-sm">{invitation.email}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {invitation.role}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <LoadingButton
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleCancelInvitation(invitation.id)}
+                          isLoading={isRevoking.includes(invitation.id)}
+                        >
+                          Revoke
+                        </LoadingButton>
                         <CopyButton
-                          textToCopy={`${window.location.origin}/accept-invitation/${invitation.id}`}
+                          textToCopy={`${typeof window !== "undefined" ? window.location.origin : ""}/accept-invitation/${invitation.id}`}
                         />
                       </div>
                     </div>
-                  </div>
-                ))}
-              {optimisticOrg?.invitations.length === 0 && (
+                  ))
+              ) : (
                 <span className="text-sm text-muted-foreground">
-                  No Active Invitations
+                  No active invitations
                 </span>
               )}
-              {!optimisticOrg?.id && (
-                <Label className="text-xs text-muted-foreground">
+
+              {!activeOrg?.id && (
+                <span className="text-xs text-muted-foreground">
                   You can&apos;t invite members to your personal workspace.
-                </Label>
+                </span>
               )}
             </div>
           </div>
         </div>
-        <div className="mt-4 flex w-full justify-end">
-          <div>
-            <div>
-              {optimisticOrg?.id && (
-                <InviteMemberDialog
-                  setOptimisticOrg={setOptimisticOrg}
-                  optimisticOrg={optimisticOrg}
-                />
-              )}
+
+        {/* Danger Zone - Delete Organization */}
+        {activeOrg?.id && currentMember?.role === "owner" && (
+          <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-4">
+            <div className="mb-3 flex items-center">
+              <span className="text-sm font-semibold text-destructive">
+                DANGER ZONE
+              </span>
+            </div>
+
+            <div className="mb-4 space-y-2">
+              <h4 className="text-sm font-medium">Delete Organization</h4>
+              <p className="text-xs text-muted-foreground">
+                Once you delete this organization, there is no going back. This
+                action is permanent and will remove all organization data from
+                our systems.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <LoadingButton
+                variant="destructive"
+                onClick={handleDeleteOrganization}
+                className="w-full"
+                isLoading={isLoading}
+              >
+                <Trash className="mr-2 h-4 w-4" />
+                Permanently Delete Organization
+              </LoadingButton>
             </div>
           </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   );
-}
+};
 
-function InviteMemberDialog({
-  setOptimisticOrg,
-  optimisticOrg,
-}: {
-  setOptimisticOrg: (org: ActiveOrganization | null) => void;
-  optimisticOrg: ActiveOrganization | null;
-}) {
-  const [open, setOpen] = useState(false);
-  const [email, setEmail] = useState("");
-  const [role, setRole] = useState("member");
-  const [loading, setLoading] = useState(false);
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button size="sm" className="w-full gap-2" variant="secondary">
-          <MailPlus size={16} />
-          <span>Invite Member</span>
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="w-11/12 sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Invite Member</DialogTitle>
-          <DialogDescription>
-            Invite a member to your organization.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex flex-col gap-2">
-          <Label>Email</Label>
-          <Input
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <Label>Role</Label>
-          <Select value={role} onValueChange={setRole}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select a role" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="admin">Admin</SelectItem>
-              <SelectItem value="member">Member</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <DialogFooter>
-          <DialogClose>
-            <Button
-              disabled={loading}
-              onClick={async () => {
-                const invite = authClient.organization.inviteMember({
-                  email: email,
-                  role: role as "member",
-                  fetchOptions: {
-                    throw: true,
-                    onSuccess: (ctx) => {
-                      if (optimisticOrg) {
-                        setOptimisticOrg({
-                          ...optimisticOrg,
-                          invitations: [
-                            ...(optimisticOrg?.invitations || []),
-                            ctx.data,
-                          ],
-                        });
-                      }
-                    },
-                  },
-                });
-                toast({
-                  title: "Updating user info...",
-                });
-              }}
-            >
-              Invite
-            </Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
+export default OrganizationCard;

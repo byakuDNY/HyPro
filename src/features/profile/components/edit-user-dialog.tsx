@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Edit, X } from "lucide-react";
@@ -15,6 +15,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -29,97 +30,86 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { updateUserNameAndImageSchema } from "@/features/profile/zod-schema";
-import { toast } from "@/hooks/use-toast";
+import { showToast } from "@/hooks/use-custom-toast";
 import { authClient } from "@/lib/auth/auth-client";
-import { type Session } from "@/lib/auth/types";
+import { type User } from "@/lib/auth/types";
 import { convertImageToBase64 } from "@/lib/utils";
 
-const EditUserDialog = ({ session }: { session: Session | null }) => {
+const EditUserDialog = ({ user }: { user: User }) => {
   const router = useRouter();
-  const user = session?.user;
-
-  const [image, setImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(
-    user?.image || null,
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [imagePreview, setImagePreview] = useState<string | undefined>(
+    user.image ?? undefined,
   );
-  const [isLoading, setIsLoading] = useState(false);
-  const [open, setOpen] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const form = useForm<z.infer<typeof updateUserNameAndImageSchema>>({
     resolver: zodResolver(updateUserNameAndImageSchema),
     defaultValues: {
-      name: user?.name,
+      name: user.name ?? "",
       image: undefined,
     },
   });
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+
+    if (file && file.size <= 5 * 1024 * 1024) {
+      const base64Image = await convertImageToBase64(file);
+      setImagePreview(base64Image);
+      return;
+    }
+
     if (file) {
-      const reader = new FileReader();
-      setImage(file);
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      showToast("error", "Image too large (max 5MB)");
     }
   };
 
   const onSubmit = async (
     values: z.infer<typeof updateUserNameAndImageSchema>,
   ) => {
-    setIsLoading(true);
-    const base64Image = image ? await convertImageToBase64(image) : null;
-
     await authClient.updateUser(
       {
         name: values.name,
-        image: base64Image,
+        image: imagePreview,
       },
       {
         onSuccess: () => {
-          toast({
-            title: "Info successfully updated",
-          });
+          showToast("success", "Profile updated successfully");
+          setIsOpen(false);
+          form.reset();
+          setImagePreview(user.image ?? undefined);
+          router.refresh();
         },
-        onError: (ctx: any) => {
-          toast({
-            title: "Error",
-            description: ctx.error.message,
-            variant: "destructive",
-          });
+        onError: (ctx) => {
+          showToast("error", ctx.error.message);
+        },
+        onRequest: () => {
+          showToast("loading", "Updating profile...");
         },
       },
     );
-    router.refresh();
-    setImage(null);
-    setImagePreview(null);
-    form.reset();
-    setIsLoading(false);
-    setOpen(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button variant="outline">
-          <Edit />
-          Edit User
+          <Edit className="mr-2 h-4 w-4" />
+          Edit Profile
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-11/12 sm:max-w-[425px]">
+
+      <DialogContent className="w-11/12 md:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Edit User</DialogTitle>
-          <DialogDescription>Edit user information</DialogDescription>
+          <DialogTitle>Edit Profile</DialogTitle>
+          <DialogDescription>
+            Update your personal information
+          </DialogDescription>
         </DialogHeader>
+
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            onChange={() => {
-              console.log(form.formState.errors);
-            }}
-            className="space-y-8"
-          >
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="name"
@@ -131,6 +121,7 @@ const EditUserDialog = ({ session }: { session: Session | null }) => {
                       placeholder="Enter your name"
                       {...field}
                       type="text"
+                      disabled={form.formState.isSubmitting}
                     />
                   </FormControl>
                   <FormMessage />
@@ -161,18 +152,22 @@ const EditUserDialog = ({ session }: { session: Session | null }) => {
                           type="file"
                           {...field}
                           accept="image/*"
+                          ref={fileInputRef}
                           onChange={handleImageChange}
-                          className="w-full text-muted-foreground"
+                          className="w-full cursor-pointer text-muted-foreground"
+                          disabled={form.formState.isSubmitting}
                         />
                         {imagePreview && (
                           <X
                             className="cursor-pointer"
                             onClick={() => {
-                              setImage(null);
-                              setImagePreview(null);
-                              form.reset({
-                                image: undefined,
-                              });
+                              setImagePreview(undefined);
+                              form.resetField("image");
+
+                              // Reset the file input element directly
+                              if (fileInputRef.current) {
+                                fileInputRef.current.value = "";
+                              }
                             }}
                           />
                         )}
@@ -184,11 +179,20 @@ const EditUserDialog = ({ session }: { session: Session | null }) => {
               )}
             />
 
-            <LoadingButton isLoading={isLoading}>Submit</LoadingButton>
+            <DialogFooter>
+              <LoadingButton
+                isLoading={form.formState.isSubmitting}
+                className="w-full"
+                type="submit"
+              >
+                Save Changes
+              </LoadingButton>
+            </DialogFooter>
           </form>
         </Form>
       </DialogContent>
     </Dialog>
   );
 };
+
 export default EditUserDialog;

@@ -6,6 +6,23 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+html,
+body {
+  height: 100%;
+}
+
+.card-container {
+  @apply container mx-auto max-w-lg;
+}
+
+.card-header {
+  @apply text-center;
+}
+
+.card-description {
+  @apply text-sm text-muted-foreground;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

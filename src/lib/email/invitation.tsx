@@ -16,7 +16,7 @@ import {
   Text,
 } from "@react-email/components";
 
-interface BetterAuthInviteUserEmailProps {
+interface InvitationEmailProps {
   username?: string;
   invitedByUsername?: string;
   invitedByEmail?: string;
@@ -25,75 +25,110 @@ interface BetterAuthInviteUserEmailProps {
   inviteLink?: string;
 }
 
-export const InviteUserEmail = ({
+const InvitationEmail = ({
   username,
   invitedByUsername,
   invitedByEmail,
   teamName,
   teamImage,
   inviteLink,
-}: BetterAuthInviteUserEmailProps) => {
-  const previewText = `Join ${invitedByUsername} on BetterAuth`;
+}: InvitationEmailProps) => {
+  const previewText = `${invitedByUsername} invited you to join ${teamName} on Hypro`;
+
   return (
     <Html>
       <Head />
       <Preview>{previewText}</Preview>
       <Tailwind>
-        <Body className="mx-auto my-auto bg-white px-2 font-sans">
-          <Container className="mx-auto my-[40px] max-w-[465px] rounded border border-solid border-[#eaeaea] p-[20px]">
-            <Heading className="mx-0 my-[30px] p-0 text-center text-[24px] font-normal text-black">
-              Join <strong>{invitedByUsername}</strong> on{" "}
-              <strong>Better Auth.</strong>
-            </Heading>
-            <Text className="text-[14px] leading-[24px] text-black">
-              Hello there,
-            </Text>
-            <Text className="text-[14px] leading-[24px] text-black">
-              <strong>{invitedByUsername}</strong> (
-              <Link
-                href={`mailto:${invitedByEmail}`}
-                className="text-blue-600 no-underline"
-              >
-                {invitedByEmail}
-              </Link>
-              ) has invited you to the <strong>{teamName}</strong> team on{" "}
-              <strong>Better Auth</strong>.
-            </Text>
-            <Section>
-              {teamImage ? (
-                <Row>
-                  <Column align="left">
-                    <Img
-                      className="rounded-full"
-                      src={teamImage}
-                      width="64"
-                      height="64"
-                      fetchPriority="high"
-                    />
-                  </Column>
-                </Row>
-              ) : null}
+        <Body className="bg-[#fafafa] font-sans">
+          <Container className="mx-auto my-8 max-w-[500px]">
+            {/* Header with Logo */}
+            <Section className="rounded-t-[0.5rem] bg-white px-8 pt-8 text-center">
+              <Row>
+                <Column>
+                  {/* Email-friendly logo version */}
+                  <Section className="mx-auto text-center">
+                    <Text className="m-0 text-xl font-bold">
+                      <span className="text-[#e11d48]">Hy</span>Pro
+                    </Text>
+                  </Section>
+                </Column>
+              </Row>
             </Section>
-            <Section className="mb-[32px] mt-[32px] text-center">
-              <Button
-                className="rounded bg-[#000000] px-5 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                href={inviteLink}
-              >
-                Join the team
-              </Button>
+
+            {/* Main Content */}
+            <Section className="rounded-b-[0.5rem] bg-white px-8 pb-8">
+              <Heading className="mb-6 mt-4 text-center text-2xl font-bold text-[#0c0a09]">
+                You&apos;ve been invited to join a team
+              </Heading>
+
+              {/* Team Info */}
+              <Section className="mb-6 rounded-[0.5rem] bg-[#f5f5f4] p-4 text-center">
+                {teamImage && (
+                  <Img
+                    src={teamImage}
+                    width="64"
+                    height="64"
+                    alt={teamName || "Team"}
+                    className="mx-auto mb-2 rounded-full border-2 border-[#e6e6e6]"
+                  />
+                )}
+                <Text className="mb-1 text-lg font-bold text-[#0c0a09]">
+                  {teamName}
+                </Text>
+                <Text className="text-sm text-[#737373]">
+                  Invited by {invitedByUsername} ({invitedByEmail})
+                </Text>
+              </Section>
+
+              <Text className="mb-6 text-base text-[#262626]">
+                Hi{username ? ` ${username}` : ""},
+              </Text>
+
+              <Text className="mb-6 text-base text-[#262626]">
+                <strong>{invitedByUsername}</strong> has invited you to
+                collaborate on the <strong>{teamName}</strong> team on Hypro.
+                Join now to start working together!
+              </Text>
+
+              {/* CTA Button */}
+              <Section className="mb-8 text-center">
+                <Button
+                  className="rounded-[0.5rem] bg-[#e11d48] px-6 py-3 text-center text-base font-medium text-white no-underline"
+                  href={inviteLink}
+                >
+                  Accept Invitation
+                </Button>
+              </Section>
+
+              <Text className="mb-6 text-sm text-[#737373]">
+                Or copy this link into your browser:{" "}
+                <Link href={inviteLink} className="text-[#e11d48] no-underline">
+                  {inviteLink}
+                </Link>
+              </Text>
+
+              <Hr className="mb-6 border-[#e6e6e6]" />
+
+              <Text className="text-xs text-[#a3a3a3]">
+                If you weren&apos;t expecting this invitation, you can safely
+                ignore this email. If you have any questions, please contact
+                support@hypro.com.
+              </Text>
             </Section>
-            <Text className="text-[14px] leading-[24px] text-black">
-              or copy and paste this URL into your browser:{" "}
-              <Link href={inviteLink} className="text-blue-600 no-underline">
-                {inviteLink}
-              </Link>
-            </Text>
-            <Hr className="mx-0 my-[26px] w-full border border-solid border-[#eaeaea]" />
-            <Text className="text-[12px] leading-[24px] text-[#666666]">
-              This invitation was intended for{" "}
-              <span className="text-black">{username}</span>. If you were not
-              expecting this invitation, you can ignore this email.
-            </Text>
+
+            {/* Footer */}
+            <Section className="mt-4 text-center">
+              <Text className="text-xs text-[#a3a3a3]">
+                {`© 2025${new Date().getFullYear() > 2025 ? `-${new Date().getFullYear()}` : ""} Hypro. All rights reserved.`}
+              </Text>
+              {/* <Text className="text-xs text-[#a3a3a3]">
+                123 Startup Way, San Francisco, CA 94107
+              </Text> */}
+              <Text className="text-xs text-[#a3a3a3]">
+                This is an automated email, please do not reply.
+              </Text>
+            </Section>
           </Container>
         </Body>
       </Tailwind>
@@ -101,7 +136,4 @@ export const InviteUserEmail = ({
   );
 };
 
-export function reactInvitationEmail(props: BetterAuthInviteUserEmailProps) {
-  console.log(props);
-  return <InviteUserEmail {...props} />;
-}
+export default InvitationEmail;

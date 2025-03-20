@@ -1,4 +1,4 @@
-import ClientFormClient from "@/features/clients/components/client-form";
+import ClientForm from "@/features/clients/components/client-form";
 import { getClient } from "@/features/clients/queries";
 
 const UpdateClient = async ({
@@ -11,7 +11,7 @@ const UpdateClient = async ({
   const { data: client } = await getClient(id);
 
   return (
-    <ClientFormClient
+    <ClientForm
       isEditMode={true}
       id={client.id}
       name={client.name}

@@ -16,5 +16,6 @@ export const convertImageToBase64 = async (file: File): Promise<string> => {
 
 export const getInitials = (name: string) => {
   const names = name.split(" ");
-  return names.map((n) => n.charAt(0)).join("");
+  const initials = names.map((n) => n.charAt(0).toUpperCase()).join("");
+  return initials.length > 2 ? initials.slice(0, 2) : initials;
 };

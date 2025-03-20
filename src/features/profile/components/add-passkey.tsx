@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
+
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Mails } from "lucide-react";
+import { Fingerprint, Plus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -25,65 +27,73 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { changeEmailSchema } from "@/features/profile/zod-schema";
 import { showToast } from "@/hooks/use-custom-toast";
 import { authClient } from "@/lib/auth/auth-client";
-import { type User } from "@/lib/auth/types";
 
-const ChangeEmail = ({ user }: { user: User }) => {
-  const form = useForm<z.infer<typeof changeEmailSchema>>({
-    resolver: zodResolver(changeEmailSchema),
+import { passkeySchema } from "../zod-schema";
+
+const AddPasskey = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const form = useForm<z.infer<typeof passkeySchema>>({
+    resolver: zodResolver(passkeySchema),
     defaultValues: {
-      email: user.email,
+      name: "",
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof changeEmailSchema>) => {
-    await authClient.changeEmail(
-      {
-        newEmail: values.email,
-      },
+  const onSubmit = async (values: z.infer<typeof passkeySchema>) => {
+    await authClient.passkey.addPasskey(
+      { name: values.name },
       {
         onSuccess: () => {
-          showToast("success", "Email changed successfully");
+          showToast(
+            "success",
+            "Passkey added successfully. You can now use it to login.",
+          );
+          setIsOpen(false);
+          form.reset();
         },
         onError: (ctx) => {
           showToast("error", ctx.error.message);
         },
         onRequest: () => {
-          showToast("loading", "Changing email...");
+          showToast("loading", "Creating passkey...");
         },
       },
     );
   };
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="z-10 gap-2" variant="outline">
-          <Mails className="size-4" />
-          <span className="text-sm text-muted-foreground">Change Email</span>
+        <Button variant="outline" className="gap-2 text-xs md:text-sm">
+          <Plus size={15} />
+          Add New Passkey
         </Button>
       </DialogTrigger>
 
       <DialogContent className="w-11/12 sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Change Email</DialogTitle>
-          <DialogDescription>Change your email</DialogDescription>
+          <DialogTitle>Add New Passkey</DialogTitle>
+          <DialogDescription>
+            Create a new passkey to securely access your account without a
+            password.
+          </DialogDescription>
         </DialogHeader>
+
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="email"
+              name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>Passkey Name</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter your email"
+                      placeholder="My Passkey"
                       {...field}
-                      type="email"
                       disabled={form.formState.isSubmitting}
                     />
                   </FormControl>
@@ -91,13 +101,15 @@ const ChangeEmail = ({ user }: { user: User }) => {
                 </FormItem>
               )}
             />
+
             <DialogFooter>
               <LoadingButton
+                type="submit"
                 isLoading={form.formState.isSubmitting}
                 className="w-full"
-                type="submit"
               >
-                Submit
+                <Fingerprint className="size-4" />
+                Create Passkey
               </LoadingButton>
             </DialogFooter>
           </form>
@@ -106,4 +118,5 @@ const ChangeEmail = ({ user }: { user: User }) => {
     </Dialog>
   );
 };
-export default ChangeEmail;
+
+export default AddPasskey;

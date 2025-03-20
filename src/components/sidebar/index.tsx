@@ -20,7 +20,7 @@ import { SIDEBAR_ITEMS } from "@/lib/constants";
 import SidebarFooterComponent from "./sidebar-footer-component";
 import SidebarHeaderDialog from "./sidebar-header.dialog";
 
-const AppSidebar = async () => {
+const AppSidebar = () => {
   // const organization = await auth.api.getFullOrganization({
   //   headers: await headers(),
   // });

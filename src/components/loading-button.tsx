@@ -13,6 +13,7 @@ const LoadingButton = ({
   className,
   type,
   variant,
+  size,
   unstyled = false,
 }: {
   children: React.ReactNode;
@@ -27,6 +28,7 @@ const LoadingButton = ({
     | "outline"
     | "ghost"
     | "link";
+  size?: "default" | "sm" | "lg" | "icon";
   unstyled?: boolean;
 }) => {
   if (!unstyled) {
@@ -37,6 +39,7 @@ const LoadingButton = ({
         variant={variant}
         disabled={isLoading}
         onClick={onClick}
+        size={size}
       >
         {isLoading ? (
           <>

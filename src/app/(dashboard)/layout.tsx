@@ -1,5 +1,3 @@
-import { cookies } from "next/headers";
-
 import AppSidebar from "@/components/sidebar";
 import {
   SidebarInset,
@@ -7,20 +5,20 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 
-export default async function DashboardLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const cookieStore = await cookies();
-  const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
   return (
-    <SidebarProvider defaultOpen={defaultOpen}>
+    <SidebarProvider>
       <AppSidebar />
+
       <SidebarInset>
-        <main>
+        <main className="flex h-full flex-col">
           <SidebarTrigger />
-          <section className="">{children}</section>
+
+          {children}
         </main>
       </SidebarInset>
     </SidebarProvider>

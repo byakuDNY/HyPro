@@ -1,7 +1,6 @@
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-import ChangeEmail from "@/features/profile/components/change-email";
-import DeleteUser from "@/features/profile/components/delete-user";
 import UserCard from "@/features/profile/components/user-card";
 import auth from "@/lib/auth/better-auth";
 
@@ -19,11 +18,13 @@ const Profile = async () => {
     })
   )[0];
 
+  if (!session) {
+    redirect("/sign-in");
+  }
+
   return (
-    <div>
-      <UserCard session={session} provider={provider} />
-      <ChangeEmail session={session} />
-      <DeleteUser />
+    <div className="p-4">
+      <UserCard user={session.user} provider={provider} />
     </div>
   );
 };

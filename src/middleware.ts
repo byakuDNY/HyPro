@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import { getSessionCookie } from "better-auth";
+// import { getSessionCookie } from "better-auth";
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
@@ -24,8 +24,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith(route),
   );
 
-  const cookies = getSessionCookie(request);
-  // const cookies = request.cookies.has("better-auth.session_token");
+  // const cookies = getSessionCookie(request);
+  const cookies = request.cookies.has("better-auth.session_token");
 
   if (cookies) {
     if (isAuthRoute) {

@@ -2,18 +2,20 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, PlusCircle, X } from "lucide-react";
+import { PlusCircle, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import LoadingButton from "@/components/loading-button";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -28,16 +30,22 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { createOrganizationSchema } from "@/features/organizations/zod-schema";
-import { toast } from "@/hooks/use-toast";
+import { showToast } from "@/hooks/use-custom-toast";
 import { authClient } from "@/lib/auth/auth-client";
+import { ActiveOrganization } from "@/lib/auth/types";
 import { convertImageToBase64 } from "@/lib/utils";
 
-function CreateOrganizationDialog() {
+const CreateOrganizationDialog = ({
+  setActiveOrg,
+}: {
+  setActiveOrg: React.Dispatch<React.SetStateAction<ActiveOrganization | null>>;
+}) => {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [logo, setLogo] = useState<File | null>(null);
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [logoPreview, setLogoPreview] = useState<string | undefined>(undefined);
+  const [isSlugEdited, setIsSlugEdited] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const form = useForm<z.infer<typeof createOrganizationSchema>>({
     resolver: zodResolver(createOrganizationSchema),
@@ -48,76 +56,86 @@ function CreateOrganizationDialog() {
     },
   });
 
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Watch the name field for changes
+  const { watch, setValue } = form;
+  const name = watch("name");
+
+  // Automatically generate the slug based on the organization name if the slug has not been manually edited
+  useEffect(() => {
+    if (!isSlugEdited) {
+      const generatedSlug = name.trim().toLowerCase().replace(/\s+/g, "-");
+      setValue("slug", generatedSlug);
+    }
+  }, [name, isSlugEdited, setValue]);
+
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+
+    if (file && file.size <= 5 * 1024 * 1024) {
+      const base64Logo = await convertImageToBase64(file);
+      setLogoPreview(base64Logo);
+      return;
+    }
     if (file) {
-      const reader = new FileReader();
-      setLogo(file);
-      reader.onloadend = () => setLogoPreview(reader.result as string);
-      reader.readAsDataURL(file);
+      showToast("error", "Image too large (max 5MB)");
     }
   };
 
+  // const MAX_ORGANIZATIONS = 5;
+
   const onSubmit = async (values: z.infer<typeof createOrganizationSchema>) => {
-    setLoading(true);
+    // if (organizations && organizations.length >= MAX_ORGANIZATIONS) {
+    //   showToast("error", `Organization limit reached (${MAX_ORGANIZATIONS})`);
+    //   return;
+    // }
 
-    let base64Logo = undefined;
-    if (logo) {
-      base64Logo = await convertImageToBase64(logo);
-    }
+    await authClient.organization.create(
+      { name: values.name, slug: values.slug, logo: logoPreview },
+      {
+        onSuccess: (ctx) => {
+          showToast("success", "Organization created successfully");
+          setIsOpen(false);
+          form.reset();
+          setLogoPreview(undefined);
+          router.refresh();
 
-    try {
-      await authClient.organization.create(
-        { ...values, logo: base64Logo || undefined }, // Spread form values and add logo
-        {
-          onResponse: () => setLoading(false),
-          onSuccess: () => {
-            toast({
-              title: "Organization created successfully",
-            });
-            setOpen(false);
-            form.reset(); // Reset the form after successful creation
-            setLogo(null);
-            setLogoPreview(null);
-            router.refresh(); // Refresh the organization list or wherever you need it
-          },
-          onError: (error) => {
-            toast({
-              title: "Error creating organization",
-              description: error.error.message,
-              variant: "destructive",
-            });
-            console.error(error.error.message);
-            setLoading(false);
-          },
+          authClient.organization.setActive(
+            { organizationId: ctx.data.id },
+            {
+              onSuccess: (activeOrgCtx) => {
+                // Update the active organization directly
+                setActiveOrg(activeOrgCtx.data);
+              },
+              onError: (ctx) => {
+                showToast("error", ctx.error.message);
+              },
+            },
+          );
         },
-      );
-    } catch (error) {
-      console.error("Error creating organization:", error);
-      setLoading(false);
-      toast({
-        title: "Error creating organization",
-        description: "An unexpected error occurred.",
-        variant: "destructive",
-      });
-    }
+        onError: (ctx) => {
+          showToast("error", ctx.error.message);
+        },
+      },
+    );
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="w-full gap-2" variant="default">
+        <Button variant="default">
           <PlusCircle />
-          <span>New Organization</span>
+          New Organization
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-11/12 sm:max-w-[425px]">
+
+      <DialogContent className="w-11/12 md:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>New Organization</DialogTitle>
           <DialogDescription>
             Create a new organization to collaborate with your team.
           </DialogDescription>
         </DialogHeader>
+
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
@@ -131,33 +149,49 @@ function CreateOrganizationDialog() {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Organization Name</FormLabel>
+                  <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Name" {...field} />
+                    <Input
+                      placeholder="Enter organization name"
+                      {...field}
+                      type="text"
+                      disabled={form.formState.isSubmitting}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="slug"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Organization Slug</FormLabel>
+                  <FormLabel>Slug</FormLabel>
                   <FormControl>
-                    <Input placeholder="Slug" {...field} />
+                    <Input
+                      placeholder="Organization slug"
+                      {...field}
+                      type="text"
+                      onChange={(e) => {
+                        field.onChange(e);
+                        setIsSlugEdited(true);
+                      }}
+                      disabled
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="logo"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Profile Logo</FormLabel>
+                  <FormLabel>Logo</FormLabel>
                   <FormControl>
                     <div className="flex items-end gap-4">
                       {logoPreview && (
@@ -174,19 +208,23 @@ function CreateOrganizationDialog() {
                         <Input
                           type="file"
                           {...field}
-                          accept="logo/*"
+                          accept="image/*"
+                          ref={fileInputRef}
                           onChange={handleLogoChange}
-                          className="w-full text-muted-foreground"
+                          className="w-full cursor-pointer text-muted-foreground"
+                          disabled={form.formState.isSubmitting}
                         />
                         {logoPreview && (
                           <X
                             className="cursor-pointer"
                             onClick={() => {
-                              setLogo(null);
-                              setLogoPreview(null);
-                              form.reset({
-                                logo: undefined,
-                              });
+                              setLogoPreview(undefined);
+                              form.resetField("logo");
+
+                              // Reset the file input element directly
+                              if (fileInputRef.current) {
+                                fileInputRef.current.value = "";
+                              }
                             }}
                           />
                         )}
@@ -198,18 +236,20 @@ function CreateOrganizationDialog() {
               )}
             />
 
-            <Button type="submit" disabled={loading}>
-              {loading ? (
-                <Loader2 className="animate-spin" size={16} />
-              ) : (
-                "Create"
-              )}
-            </Button>
+            <DialogFooter>
+              <LoadingButton
+                isLoading={form.formState.isSubmitting}
+                className="w-full"
+                type="submit"
+              >
+                Create
+              </LoadingButton>
+            </DialogFooter>
           </form>
         </Form>
       </DialogContent>
     </Dialog>
   );
-}
+};
 
 export default CreateOrganizationDialog;

@@ -46,32 +46,51 @@ const DataTable = <TData, TValue>({
 
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
-    () => {
-      const saved = localStorage.getItem("table-columnVisibility");
-      return saved ? JSON.parse(saved) : {};
-    },
-  );
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
-  useEffect(() => {
-    localStorage.setItem(
-      "table-columnVisibility",
-      JSON.stringify(columnVisibility),
-    );
-  }, [columnVisibility]);
-
-  const [pagination, setPagination] = useState<PaginationState>(() => {
-    const saved = localStorage.getItem("table-pagination");
-    return saved
-      ? JSON.parse(saved)
-      : {
-          pageIndex: 0,
-          pageSize: 10,
-        };
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
   });
 
+  // Load saved preferences after component mounts
   useEffect(() => {
-    localStorage.setItem("table-pagination", JSON.stringify(pagination));
+    // Safe localStorage access
+    try {
+      // Load column visibility
+      const savedVisibility = localStorage.getItem("table-columnVisibility");
+      if (savedVisibility) {
+        setColumnVisibility(JSON.parse(savedVisibility));
+      }
+
+      // Load pagination
+      const savedPagination = localStorage.getItem("table-pagination");
+      if (savedPagination) {
+        setPagination(JSON.parse(savedPagination));
+      }
+    } catch (e) {
+      console.error("Error loading table preferences:", e);
+    }
+  }, []);
+
+  // Save preferences when they change
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        "table-columnVisibility",
+        JSON.stringify(columnVisibility),
+      );
+    } catch (e) {
+      console.error("Error saving column visibility:", e);
+    }
+  }, [columnVisibility]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("table-pagination", JSON.stringify(pagination));
+    } catch (e) {
+      console.error("Error saving pagination:", e);
+    }
   }, [pagination]);
 
   const table = useReactTable({
@@ -117,7 +136,7 @@ const DataTable = <TData, TValue>({
                       key={header.id}
                       className={`${
                         header.column.id === "actions" &&
-                        "sticky right-0 w-12 bg-primary-foreground"
+                        "sticky right-0 w-12 bg-background"
                       }`}
                     >
                       {header.isPlaceholder
@@ -144,7 +163,7 @@ const DataTable = <TData, TValue>({
                       key={cell.id}
                       className={`${
                         cell.column.id === "actions"
-                          ? "sticky right-0 w-12 bg-primary-foreground"
+                          ? "sticky right-0 w-12 bg-background"
                           : ""
                       }`}
                     >
