@@ -97,6 +97,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
             );
           },
           onError: (ctx) => {
+            console.error(ctx.error);
             showToast("error", ctx.error.message);
           },
         },
