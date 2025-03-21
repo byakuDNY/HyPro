@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 
 import { ChevronsUpDown, LogOut, Settings } from "lucide-react";
@@ -18,21 +20,18 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import SignOutClient from "@/features/auth/components/sign-out-client";
+import { authClient } from "@/lib/auth/auth-client";
 import { getInitials } from "@/lib/utils";
 
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 const SidebarFooterComponent = () => {
-  // const session = (await auth.api.getSession({
-  //   headers: await headers(),
-  // })) as Session | null;
+  const { data: session } = authClient.useSession();
 
-  // const { name = "", email, image } = session?.user || {};
-  // const imageSrc = image ?? undefined;
+  const { name, email, image } = session?.user ?? {};
+  const nameInitials = getInitials(name ?? "");
+  const imageSrc = image ?? undefined;
 
-  const name = "John Doe";
-  const email = "john@example.com";
-  const imageSrc = "";
   return (
     <SidebarFooter>
       <SidebarMenu>
@@ -43,7 +42,7 @@ const SidebarFooterComponent = () => {
                 <Avatar className="h-8 w-8 overflow-hidden rounded-full">
                   <AvatarImage src={imageSrc} alt={name} />
                   <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                    {getInitials(name)}
+                    {nameInitials}
                   </AvatarFallback>
                 </Avatar>
                 <span className="truncate font-medium">{name}</span>
@@ -60,7 +59,7 @@ const SidebarFooterComponent = () => {
                   <Avatar className="h-8 w-8 overflow-hidden rounded-full">
                     <AvatarImage src={imageSrc} alt={name} />
                     <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                      {getInitials(name)}
+                      {nameInitials}
                     </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">

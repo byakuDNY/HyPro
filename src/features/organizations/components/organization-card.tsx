@@ -26,6 +26,7 @@ import {
 } from "@/lib/auth/types";
 import { getInitials } from "@/lib/utils";
 
+import { revalidatePathAction } from "../actions";
 import CreateOrganizationDialog from "./create-organization.dialog";
 import InviteMemberDialog from "./invite-member-dialog";
 
@@ -51,7 +52,7 @@ const OrganizationCard = ({
     (member) => member.userId === user.id,
   );
 
-  const handleSetOrganization = (org: Organization | null) => {
+  const handleSetOrganization = async (org: Organization | null) => {
     setIsLoading(true);
 
     if (org?.id === activeOrg?.id) {
@@ -66,6 +67,8 @@ const OrganizationCard = ({
         {
           onSuccess: () => {
             setActiveOrg(null);
+            router.refresh();
+
             showToast(
               "success",
               "Personal is now set as the active organization.",
@@ -79,6 +82,7 @@ const OrganizationCard = ({
           },
         },
       );
+      await revalidatePathAction();
       return;
     }
 
@@ -102,6 +106,7 @@ const OrganizationCard = ({
         },
       },
     );
+    await revalidatePathAction();
 
     setIsLoading(false);
   };
